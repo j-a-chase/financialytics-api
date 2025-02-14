@@ -17,6 +17,8 @@ public class TransactionController {
     public List<Transaction> getAllTransactions(@RequestParam Integer userId) {
         return List.of(new Transaction(), new Transaction(), new Transaction(), new Transaction(), new Transaction(),
                 new Transaction(), new Transaction(), new Transaction(), new Transaction(), new Transaction(),
+                new Transaction(), new Transaction(), new Transaction(), new Transaction(), new Transaction(),
+                new Transaction(), new Transaction(), new Transaction(), new Transaction(), new Transaction(),
                 new Transaction(), new Transaction(), new Transaction(), new Transaction(), new Transaction());
     }
 
