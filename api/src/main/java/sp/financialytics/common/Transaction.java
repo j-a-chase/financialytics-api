@@ -1,22 +1,18 @@
 package sp.financialytics.common;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Data
-@AllArgsConstructor
+@NoArgsConstructor
 public class Transaction {
-    private Integer amount;
-    private LocalDate date;
-    private String description;
-    private String category;
-
-    public Transaction() {
-        amount = 117;
-        date = LocalDate.now();
-        description = "description";
-        category = "category";
-    }
+  private String id;
+  @JsonFormat(pattern="dd-MMM-yyyy")
+  private LocalDate date;
+  private String description;
+  private String category;
+  private Integer amount;
 }
