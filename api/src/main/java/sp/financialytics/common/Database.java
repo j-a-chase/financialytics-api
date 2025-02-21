@@ -1,7 +1,9 @@
 package sp.financialytics.common;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
 import org.slf4j.Logger;
@@ -22,6 +24,7 @@ public class Database {
 
   private Database() { }
 
+  @JsonIgnore
   public User getCurrentUser() {
     return users.get(0);
   }
@@ -43,7 +46,8 @@ public class Database {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
     mapper.setDateFormat(new SimpleDateFormat("dd-MMM-yyyy"));
+    mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-    mapper.writeValue(new File("api/src/main/resources/temp.json"), this);
+    mapper.writeValue(new File("api/src/main/resources/db.json"), this);
   }
 }
