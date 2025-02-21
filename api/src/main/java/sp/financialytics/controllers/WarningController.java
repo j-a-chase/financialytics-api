@@ -20,6 +20,6 @@ public class WarningController {
 
   @GetMapping("retrieve")
   public List<Warning> getUserWarnings(@RequestParam Integer userId) {
-    return List.of(Warning.builder().build());
+    return List.of(new Warning());
   }
 }
