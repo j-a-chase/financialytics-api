@@ -1,0 +1,56 @@
+{
+  "name": "Financialytics DB",
+  "users": [
+    {
+      "name": "dev",
+      "id": 1,
+      "password": "adminDev",
+      "email": "example@gmail.com",
+      "transactions": [
+        {
+          "id": "1-0",
+          "date": "19-Feb-2025",
+          "description": "No Description Set.",
+          "category": "Not yet implemented.",
+          "amount": 117
+        },
+        {
+          "id": "1-1",
+          "date": "19-Feb-2025",
+          "description": "No Description Set.",
+          "category": "Not yet implemented.",
+          "amount": 118
+        },
+        {
+          "id": "1-2",
+          "date": "19-Feb-2025",
+          "description": "No Description Set.",
+          "category": "Not yet implemented.",
+          "amount": 119
+        }
+      ],
+      "warningConfig": [
+        {
+          "message": "hide_monthly_close",
+          "enabled": true,
+          "dismissed": false
+        },
+        {
+          "message": "hide_monthly_budget",
+          "enabled": true,
+          "dismissed": false
+        },
+        {
+          "message": "hide_category_close",
+          "enabled": true,
+          "dismissed": false
+        },
+        {
+          "message": "hide_category_budget",
+          "enabled": true,
+          "dismissed": false
+        }
+      ]
+    }
+  ]
+}
