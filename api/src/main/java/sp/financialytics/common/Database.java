@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import static java.util.Objects.isNull;
+
 // Represents the program database, allows for modification, read/write for the db.json file
 @Data
 public class Database {
@@ -22,32 +24,43 @@ public class Database {
   private String name;
   private List<User> users;
 
+  @SuppressWarnings("unused")
   private Database() { }
 
+  Database(List<User> users) {
+    this.name = "Test DB";
+    this.users = users;
+  }
+
   @JsonIgnore
-  public User getCurrentUser() {
+  public User getCurrentUser() throws RuntimeException {
+    if (isNull(users) || users.isEmpty()) {
+      throw new RuntimeException("No users found.");
+    }
+
     return users.get(0);
+  }
+
+  private static ObjectMapper configureObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.setDateFormat(new SimpleDateFormat("dd-MMM-yyyy"));
+    return mapper;
   }
 
   public static Database load(File databaseFile) throws IOException {
     try {
-      ObjectMapper mapper = new ObjectMapper();
-      mapper.registerModule(new JavaTimeModule());
-      mapper.setDateFormat(new SimpleDateFormat("dd-MMM-yyyy"));
-      JsonNode root = mapper.readTree(databaseFile);
-      return mapper.convertValue(root, Database.class);
+      return configureObjectMapper().readValue(databaseFile, Database.class);
     } catch (IOException e) {
       LOG.error("Critical failure: ", e);
       throw e;
     }
   }
 
-  public void update() throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.registerModule(new JavaTimeModule());
-    mapper.setDateFormat(new SimpleDateFormat("dd-MMM-yyyy"));
+  public void update(File writeFile) throws IOException {
+    ObjectMapper mapper = configureObjectMapper();
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-    mapper.writeValue(new File("api/src/main/resources/db.json"), this);
+    mapper.writeValue(writeFile, this);
   }
 }

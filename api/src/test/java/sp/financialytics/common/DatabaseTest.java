@@ -1,0 +1,132 @@
+package sp.financialytics.common;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+class DatabaseTest {
+  Database test;
+
+  private Warning[] createTestWarningConfig() {
+    return new Warning[] { new Warning("hide_monthly_budget", true, false) };
+  }
+
+  private List<Transaction> createTestTransactionList() {
+    return List.of(new Transaction("id", LocalDate.now(), "description", "category", 1));
+  }
+
+  private User createTestUser() {
+    return new User(1, "example@gmail.com", "adminDev", "dev", createTestTransactionList(), createTestWarningConfig());
+  }
+
+  @Test
+  void getCurrentUser() {
+    try {
+      test = new Database(List.of(createTestUser()));
+
+      User result = test.getCurrentUser();
+
+      assertEquals(createTestUser(), result);
+    } catch (RuntimeException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void getCurrentUserEmptyUsers() {
+    test = new Database(List.of());
+
+    try {
+      test.getCurrentUser();
+      fail("Should have thrown an exception.");
+    } catch (RuntimeException e) {
+      assertEquals(0, test.getUsers().size());
+    }
+  }
+
+  @Test
+  void getCurrentUserNullUsers() {
+    test = new Database(null);
+
+    try {
+      test.getCurrentUser();
+      fail("Should have thrown an exception.");
+    } catch (RuntimeException e) {
+      assertNull(test.getUsers());
+    }
+  }
+
+  private ObjectMapper setupObjectMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
+    mapper.setDateFormat(new SimpleDateFormat("dd-MMM-yyyy"));
+
+    return mapper;
+  }
+
+  @Test
+  void update() {
+    test = new Database(List.of(createTestUser()));
+
+    try {
+      File writeFile = new File("src/test/resources/write-db.json");
+      test.update(writeFile);
+
+      ObjectMapper mapper = setupObjectMapper();
+      Database result = mapper.readValue(writeFile, Database.class);
+
+      assertEquals(test, result);
+      if (!writeFile.delete())
+        System.out.println("Failed to delete file: " + writeFile.getAbsolutePath());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void load() {
+    try {
+      test = Database.load(new File("src/test/resources/working-test-db.json"));
+
+      assertEquals("Test DB", test.getName());
+      List<User> resultUsers = test.getUsers();
+      assertThat(resultUsers).size().isEqualTo(1);
+      User resultUser = resultUsers.get(0);
+      assertEquals("dev", resultUser.getName());
+      assertEquals("adminDev", resultUser.getPassword());
+      assertEquals("example@gmail.com", resultUser.getEmail());
+      assertEquals(1, resultUser.getId());
+      assertThat(resultUser.getTransactions()).size().isEqualTo(2);
+      assertEquals(2, resultUser.getWarningConfig().length);
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void loadException() {
+    try {
+      Database.load(new File("src/test/resources/does-not-exist-db.json"));
+      fail("Should have thrown an exception.");
+    } catch (IOException e) {
+      assertEquals(
+              "src\\test\\resources\\does-not-exist-db.json (The system cannot find the file specified)",
+              e.getMessage()
+      );
+    }
+  }
+}

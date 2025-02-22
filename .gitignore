@@ -40,3 +40,4 @@ build/
 
 ### Environment ###
 api/src/main/resources/db.json
+api/src/test/resources/*
