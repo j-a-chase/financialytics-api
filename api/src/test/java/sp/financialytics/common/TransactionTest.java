@@ -1,39 +1,52 @@
 package sp.financialytics.common;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TransactionTest {
-    @Test
-    void getAmount() {
-    }
+  Transaction test;
 
-    @Test
-    void getDate() {
-    }
+  @BeforeEach
+  void setUp() {
+    test = new Transaction();
+  }
 
-    @Test
-    void getDescription() {
-    }
+  @Test
+  void id() {
+    test.setId("id");
 
-    @Test
-    void getCategory() {
-    }
+    assertEquals("id", test.getId());
+  }
 
-    @Test
-    void setAmount() {
-    }
+  @Test
+  void date() {
+    test.setDate(LocalDate.now());
 
-    @Test
-    void setDate() {
-    }
+    assertEquals(LocalDate.now(), test.getDate());
+  }
 
-    @Test
-    void setDescription() {
-    }
+  @Test
+  void amount() {
+    test.setAmount(100);
 
-    @Test
-    void setCategory() {
-    }
+    assertEquals(100, test.getAmount());
+  }
+
+  @Test
+  void description() {
+    test.setDescription("description");
+
+    assertEquals("description", test.getDescription());
+  }
+
+  @Test
+  void category() {
+    test.setCategory("category");
+
+    assertEquals("category", test.getCategory());
+  }
 }

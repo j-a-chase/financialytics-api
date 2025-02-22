@@ -1,40 +1,69 @@
 package sp.financialytics.common;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserTest {
+  User test;
 
-    @Test
-    void getId() {
-    }
+  @BeforeEach
+  void setUp() {
+    test = new User();
+  }
 
-    @Test
-    void getEmail() {
-    }
+  @Test
+  void id() {
+    test.setId(1);
 
-    @Test
-    void getPassword() {
-    }
+    assertEquals(1, test.getId());
+  }
 
-    @Test
-    void getName() {
-    }
+  @Test
+  void name() {
+    test.setName("test");
 
-    @Test
-    void setId() {
-    }
+    assertEquals("test", test.getName());
+  }
 
-    @Test
-    void setEmail() {
-    }
+  @Test
+  void email() {
+    test.setEmail("test@test.com");
 
-    @Test
-    void setPassword() {
-    }
+    assertEquals("test@test.com", test.getEmail());
+  }
 
-    @Test
-    void setName() {
-    }
+  @Test
+  void password() {
+    test.setPassword("test");
+
+    assertEquals("test", test.getPassword());
+  }
+
+  @Test
+  void transactions() {
+    test.setTransactions(List.of(new Transaction("id", LocalDate.now(), "description", "category", 100)));
+
+    assertThat(test.getTransactions()).size().isEqualTo(1);
+    assertEquals("id", test.getTransactions().get(0).getId());
+    assertEquals(LocalDate.now(), test.getTransactions().get(0).getDate());
+    assertEquals("description", test.getTransactions().get(0).getDescription());
+    assertEquals("category", test.getTransactions().get(0).getCategory());
+    assertEquals(100, test.getTransactions().get(0).getAmount());
+  }
+
+  @Test
+  void warningConfig() {
+    test.setWarningConfig(new Warning[] { new Warning("message", true, false) });
+
+    assertEquals(1, test.getWarningConfig().length);
+    assertEquals("message", test.getWarningConfig()[0].getMessage());
+    assertTrue(test.getWarningConfig()[0].isEnabled());
+    assertFalse(test.getWarningConfig()[0].isDismissed());
+  }
 }
