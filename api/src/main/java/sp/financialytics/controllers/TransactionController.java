@@ -9,6 +9,7 @@ import sp.financialytics.common.Database;
 import sp.financialytics.common.Transaction;
 import sp.financialytics.common.User;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -58,7 +59,7 @@ public class TransactionController {
 
       // save to database
       userTransactions.add(transaction);
-      database.update();
+      database.update(new File("api/src/main/resources/db.json"));
       String responseText = String.format("Transaction #%s added successfully!", transaction.getId());
       response = ResponseEntity.ok(responseText);
     } catch (IOException e) {
