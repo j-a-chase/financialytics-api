@@ -38,12 +38,22 @@ public class TransactionController {
   }
 
   private boolean isNullTransaction(Transaction transaction) {
-    return isNull(transaction) || (isNull(transaction.getDate()) && isNull(transaction.getAmount()));
+    return isNull(transaction) || isNull(transaction.getDate()) || isNull(transaction.getAmount());
+  }
+
+  private String setNextTid(List<Transaction> userTransactions) {
+    if (userTransactions.isEmpty()) {
+      return "1-0";
+    }
+
+    String previousTid = userTransactions.get(userTransactions.size() - 1).getId();
+    Integer tid = Integer.parseInt(previousTid.substring(2)) + 1;
+    return String.format("%s-%s", currentUser.getId(), tid);
   }
 
   @PostMapping("add")
   public ResponseEntity<String> addTransaction(@RequestBody Transaction transaction) {
-    ResponseEntity<String> response = ResponseEntity.internalServerError().body("Error adding transaction.");
+    ResponseEntity<String> response;
     LOG.info("Adding transaction: {}", transaction);
 
     try {
@@ -53,9 +63,7 @@ public class TransactionController {
 
       // set the transaction id
       List<Transaction> userTransactions = currentUser.getTransactions();
-      String previousTid = userTransactions.get(userTransactions.size() - 1).getId();
-      Integer tid = Integer.parseInt(previousTid.substring(2)) + 1;
-      transaction.setId(String.format("%s-%s", currentUser.getId(), tid));
+      transaction.setId(setNextTid(userTransactions));
 
       // save to database
       userTransactions.add(transaction);
@@ -64,14 +72,9 @@ public class TransactionController {
       response = ResponseEntity.ok(responseText);
     } catch (IOException e) {
       LOG.error("Exception while updating database!", e);
+      response = ResponseEntity.internalServerError().body(e.getMessage());
     }
 
     return response;
-  }
-
-  @PostMapping("update")
-  public String updateTransaction(@RequestParam("uid") Integer uid, @RequestParam("tid") Integer transactionId,
-                                  @RequestBody Transaction transaction) {
-    return "Updated transaction!";
   }
 }
