@@ -61,6 +61,14 @@ public class Database {
     ObjectMapper mapper = configureObjectMapper();
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
+    // sort transactions prior to updating the database
+    List<Transaction> transactions = getCurrentUser().getTransactions();
+    transactions.sort(Transaction::compareTo);
+    for (int i = 0; i < transactions.size(); i++) {
+      String id = String.format("%s-%s", getCurrentUser().getId(), i);
+      transactions.get(i).setId(id);
+    }
+
     mapper.writeValue(writeFile, this);
   }
 }

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,7 +27,9 @@ class DatabaseTest {
   }
 
   private List<Transaction> createTestTransactionList() {
-    return List.of(new Transaction("id", LocalDate.now(), "description", "category", 1));
+    ArrayList<Transaction> transactions = new ArrayList<>();
+    transactions.add(new Transaction("id", LocalDate.now(), "description", "category", 1));
+    return transactions;
   }
 
   private User createTestUser() {
@@ -110,7 +113,7 @@ class DatabaseTest {
       assertEquals("adminDev", resultUser.getPassword());
       assertEquals("example@gmail.com", resultUser.getEmail());
       assertEquals(1, resultUser.getId());
-      assertThat(resultUser.getTransactions()).size().isEqualTo(2);
+      assertThat(resultUser.getTransactions()).size().isEqualTo(3);
       assertEquals(2, resultUser.getWarningConfig().length);
     } catch (IOException e) {
       fail(e.getMessage());
