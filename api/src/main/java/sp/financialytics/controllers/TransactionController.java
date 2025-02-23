@@ -21,10 +21,12 @@ public class TransactionController {
   private static final Logger LOG = LoggerFactory.getLogger(TransactionController.class);
 
   private final Database database;
+  private final File databaseFile;
   private final User currentUser;
 
-  public TransactionController(@Autowired Database database) {
+  public TransactionController(@Autowired Database database, @Autowired File databaseFile) {
     this.database = database;
+    this.databaseFile = databaseFile;
     this.currentUser = database.getCurrentUser();
   }
 
@@ -67,11 +69,53 @@ public class TransactionController {
 
       // save to database
       userTransactions.add(transaction);
-      database.update(new File("api/src/main/resources/db.json"));
+      database.update(databaseFile);
       String responseText = String.format("Transaction #%s added successfully!", transaction.getId());
       response = ResponseEntity.ok(responseText);
+      LOG.info("Transaction #{} added successfully!", transaction.getId());
     } catch (IOException e) {
       LOG.error("Exception while updating database!", e);
+      response = ResponseEntity.internalServerError().body(e.getMessage());
+    }
+
+    return response;
+  }
+
+  @PostMapping("edit")
+  public ResponseEntity<String> editTransaction(@RequestBody Transaction transaction) {
+    ResponseEntity<String> response;
+    LOG.info("Editing transaction: {}", transaction);
+
+    try {
+      if (isNull(transaction) || isNull(transaction.getId())) {
+        throw new IOException("Transaction object is null.");
+      }
+
+      List<Transaction> userTransactions = currentUser.getTransactions();
+      if (userTransactions.isEmpty()) {
+        throw new RuntimeException("Transaction list is empty.");
+      }
+
+      boolean edited = false;
+      for (int i = 0; i < userTransactions.size(); i++) {
+        if (!edited && userTransactions.get(i).getId().equals(transaction.getId())) {
+          userTransactions.set(i, transaction);
+          edited = true;
+        }
+      }
+
+      if (!edited) {
+        throw new RuntimeException("Transaction does not exist.");
+      }
+
+      database.update(databaseFile);
+      response = ResponseEntity.ok(String.format("Transaction #%s edited successfully!", transaction.getId()));
+      LOG.info("Transaction #{} edited successfully!", transaction.getId());
+    } catch (IOException e) {
+      LOG.error("IOException while updating database!", e);
+      response = ResponseEntity.internalServerError().body(e.getMessage());
+    } catch (RuntimeException e) {
+      LOG.error("RuntimeException while updating database!", e);
       response = ResponseEntity.internalServerError().body(e.getMessage());
     }
 

@@ -35,7 +35,7 @@ class TransactionControllerTest {
     } catch (IOException e) {
       fail(e.getMessage());
     }
-    test = new TransactionController(database);
+    test = new TransactionController(database, mock()); // we don't want to actually edit test files
   }
 
   @Test
@@ -80,7 +80,7 @@ class TransactionControllerTest {
   @Test
   void addTransactionEmptyTransactionList() {
     try {
-      database.getUsers().get(0).setTransactions(new ArrayList<>());
+      database.getCurrentUser().setTransactions(new ArrayList<>());
       Transaction addedTransaction = new Transaction(null, LocalDate.now(), "description", "category", 100);
       doNothing().when(database).update(any(File.class)); // prevents error from targeting main db in test
 
@@ -114,6 +114,64 @@ class TransactionControllerTest {
   @Test
   void addTransactionNullAmount() {
     ResponseEntity<String> result = test.addTransaction(new Transaction(null, LocalDate.now(), "test", "test", null));
+
+    assertEquals("Transaction object is null.", result.getBody());
+  }
+
+  @Test
+  void editTransaction() {
+    try {
+      Transaction transactionToEdit = createTestTransactions().get(0);
+      transactionToEdit.setAmount(500);
+      doNothing().when(database).update(any(File.class));
+
+      ResponseEntity<String> result = test.editTransaction(transactionToEdit);
+
+      verify(database).update(any(File.class));
+      assertEquals("Transaction #1-0 edited successfully!", result.getBody());
+      Transaction resultantTransaction = database.getCurrentUser().getTransactions().get(0);
+      assertEquals(transactionToEdit.getId(), resultantTransaction.getId());
+      assertEquals(transactionToEdit.getAmount(), resultantTransaction.getAmount());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void editTransactionNotInList() {
+    Transaction transactionToEdit = createTestTransactions().get(0);
+    transactionToEdit.setAmount(500);
+    transactionToEdit.setId("1-2");
+
+    ResponseEntity<String> result = test.editTransaction(transactionToEdit);
+
+    assertEquals("Transaction does not exist.", result.getBody());
+  }
+
+  @Test
+  void editTransactionEmptyTransactionList() {
+    database.getCurrentUser().setTransactions(new ArrayList<>());
+    Transaction transactionToEdit = createTestTransactions().get(0);
+    transactionToEdit.setAmount(500);
+
+    ResponseEntity<String> result = test.editTransaction(transactionToEdit);
+
+    assertEquals("Transaction list is empty.", result.getBody());
+  }
+
+  @Test
+  void editTransactionNullId() {
+    Transaction testTransaction = createTestTransactions().get(0);
+    testTransaction.setId(null);
+
+    ResponseEntity<String> result = test.editTransaction(testTransaction);
+
+    assertEquals("Transaction object is null.", result.getBody());
+  }
+
+  @Test
+  void editTransactionNull() {
+    ResponseEntity<String> result = test.editTransaction(null);
 
     assertEquals("Transaction object is null.", result.getBody());
   }
