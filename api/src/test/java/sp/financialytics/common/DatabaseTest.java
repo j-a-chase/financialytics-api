@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -19,18 +20,24 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class DatabaseTest {
   Database test;
 
-  private Warning[] createTestWarningConfig() {
-    return new Warning[] { new Warning("hide_monthly_budget", true, false) };
-  }
-
   private List<Transaction> createTestTransactionList() {
     ArrayList<Transaction> transactions = new ArrayList<>();
     transactions.add(new Transaction("id", LocalDate.now(), "description", "category", 1));
     return transactions;
   }
 
+  private Warning[] createTestWarningConfig() {
+    return new Warning[] { new Warning("hide_monthly_budget", true, false) };
+  }
+
+  private Map<String, Long> createTestTargetsMap() {
+    return Map.of("income", 200000L, "food", 20000L, "living", 20001L, "entertainment", 20002L, "supplies", 20003L,
+            "education", 20004L, "other", 20005L);
+  }
+
   private User createTestUser() {
-    return new User(1, "example@gmail.com", "adminDev", "dev", createTestTransactionList(), createTestWarningConfig());
+    return new User(1, "example@gmail.com", "adminDev", "dev", createTestTransactionList(), createTestWarningConfig(),
+            createTestTargetsMap());
   }
 
   @Test

@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.spy;
@@ -47,8 +48,14 @@ class UserControllerTest {
     };
   }
 
+  private Map<String, Long> createTestTargetsMap() {
+    return Map.of("income", 200000L, "food", 20000L, "living", 20001L, "entertainment", 20002L, "supplies", 20003L,
+            "education", 20004L, "other", 20005L);
+  }
+
   private User createTestUser() {
-    return new User(1, "example@gmail.com", "adminDev", "dev", createTestTransactions(), createTestWarningConfig());
+    return new User(1, "example@gmail.com", "adminDev", "dev", createTestTransactions(), createTestWarningConfig(),
+            createTestTargetsMap());
   }
 
   @Test

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -16,4 +17,5 @@ public class User {
   private String name;
   private List<Transaction> transactions;
   private Warning[] warningConfig;
+  private Map<String, Long> targets;
 }
