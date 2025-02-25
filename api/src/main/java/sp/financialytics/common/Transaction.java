@@ -23,6 +23,12 @@ public class Transaction implements Comparable<Transaction> {
     if (!this.date.isEqual(other.date))
       return this.date.compareTo(other.date);
 
-    return this.amount.compareTo(other.amount);
+    if (!this.category.equals(other.category))
+      return this.category.compareTo(other.category);
+
+    if (!this.amount.equals(other.amount))
+      return this.amount.compareTo(other.amount);
+
+    return this.description.compareTo(other.description);
   }
 }
