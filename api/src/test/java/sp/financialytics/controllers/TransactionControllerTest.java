@@ -24,7 +24,8 @@ class TransactionControllerTest {
   private List<Transaction> createTestTransactions() {
     return List.of(
             new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117),
-            new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118)
+            new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118),
+            new Transaction("1-2", LocalDate.of(2025, 2, 24), "No Description Set.", "income", 500)
     );
   }
 
@@ -44,14 +45,32 @@ class TransactionControllerTest {
 
     List<Transaction> body = result.getBody();
     assertNotNull(body);
-    assertThat(body).size().isEqualTo(2);
+    assertThat(body).size().isEqualTo(3);
     assertEquals(createTestTransactions().get(0), body.get(0));
     assertEquals(createTestTransactions().get(1), body.get(1));
+    assertEquals(createTestTransactions().get(2), body.get(2));
   }
 
   @Test
   void getAllTransactionsServerError() {
     ResponseEntity<List<Transaction>> result = test.getAllTransactions(2);
+
+    assertEquals(ResponseEntity.internalServerError().build(), result);
+  }
+
+  @Test
+  void getMoneyInTransactions() {
+    ResponseEntity<List<Transaction>> result = test.getMoneyInTransactions(1);
+
+    List<Transaction> body = result.getBody();
+    assertNotNull(body);
+    assertThat(body).size().isEqualTo(1);
+    assertEquals(createTestTransactions().get(2), body.get(0)); // this has the income transaction
+  }
+
+  @Test
+  void getMoneyInTransactionsServerError() {
+    ResponseEntity<List<Transaction>> result = test.getMoneyInTransactions(2);
 
     assertEquals(ResponseEntity.internalServerError().build(), result);
   }
@@ -65,13 +84,14 @@ class TransactionControllerTest {
       ResponseEntity<String> result = test.addTransaction(addedTransaction);
 
       verify(database).update(any(File.class));
-      assertEquals("Transaction #1-2 added successfully!", result.getBody());
+      assertEquals("Transaction #1-3 added successfully!", result.getBody());
       List<Transaction> expected = database.getCurrentUser().getTransactions();
-      assertThat(expected).size().isEqualTo(3);
+      assertThat(expected).size().isEqualTo(4);
       assertEquals(expected.get(0), createTestTransactions().get(0));
       assertEquals(expected.get(1), createTestTransactions().get(1));
-      addedTransaction.setId("1-2");
-      assertEquals(expected.get(2), addedTransaction);
+      assertEquals(expected.get(2), createTestTransactions().get(2));
+      addedTransaction.setId("1-3");
+      assertEquals(expected.get(3), addedTransaction);
     } catch (IOException e) {
       fail(e.getMessage());
     }
@@ -141,7 +161,7 @@ class TransactionControllerTest {
   void editTransactionNotInList() {
     Transaction transactionToEdit = createTestTransactions().get(0);
     transactionToEdit.setAmount(500);
-    transactionToEdit.setId("1-2");
+    transactionToEdit.setId("1-3");
 
     ResponseEntity<String> result = test.editTransaction(transactionToEdit);
 

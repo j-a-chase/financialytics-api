@@ -33,9 +33,28 @@ public class TransactionController {
   @GetMapping("all")
   public ResponseEntity<List<Transaction>> getAllTransactions(@RequestParam("uid") Integer uid) {
     ResponseEntity<List<Transaction>> response = ResponseEntity.internalServerError().build();
+    LOG.info("Retrieving transactions for user: {}", uid);
+
     if (currentUser.getId().equals(uid)) {
       response = ResponseEntity.ok(currentUser.getTransactions());
+      LOG.info("Transactions retrieved!");
     }
+
+    return response;
+  }
+
+  @GetMapping("money-in")
+  public ResponseEntity<List<Transaction>> getMoneyInTransactions(@RequestParam("uid") Integer uid) {
+    ResponseEntity<List<Transaction>> response = ResponseEntity.internalServerError().build();
+    LOG.info("Retrieving money-in transactions for user: {}", uid);
+
+    if (currentUser.getId().equals(uid)) {
+      response = ResponseEntity.ok(currentUser.getTransactions()
+              .stream().filter(transaction -> transaction.getCategory().equals("income"))
+              .toList());
+      LOG.info("Money-in transactions retrieved!");
+    }
+
     return response;
   }
 
@@ -74,8 +93,8 @@ public class TransactionController {
       response = ResponseEntity.ok(responseText);
       LOG.info("Transaction #{} added successfully!", transaction.getId());
     } catch (IOException e) {
-      LOG.error("Exception while updating database!", e);
       response = ResponseEntity.internalServerError().body(e.getMessage());
+      LOG.error("Exception while updating database!", e);
     }
 
     return response;
@@ -112,11 +131,11 @@ public class TransactionController {
       response = ResponseEntity.ok(String.format("Transaction #%s edited successfully!", transaction.getId()));
       LOG.info("Transaction #{} edited successfully!", transaction.getId());
     } catch (IOException e) {
+      response = ResponseEntity.internalServerError().body(e.getMessage());
       LOG.error("IOException while updating database!", e);
-      response = ResponseEntity.internalServerError().body(e.getMessage());
     } catch (RuntimeException e) {
-      LOG.error("RuntimeException while updating database!", e);
       response = ResponseEntity.internalServerError().body(e.getMessage());
+      LOG.error("RuntimeException while updating database!", e);
     }
 
     return response;
