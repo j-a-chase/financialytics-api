@@ -15,8 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class UserControllerTest {
   UserController test;
@@ -72,6 +71,41 @@ class UserControllerTest {
 
     ResponseEntity<User> result = test.initialize(1);
 
+    assertEquals(ResponseEntity.internalServerError().build(), result);
+  }
+
+  @Test
+  void editBudget() {
+    ResponseEntity<String> result = test.editTarget(1, Map.of("income", 500L));
+
+    verify(database).getCurrentUser();
+    assertNotNull(result.getBody());
+    assertEquals("Targets successfully edited!", result.getBody());
+  }
+
+  @Test
+  void editBudgetFailedToFindCategoryToEdit() {
+    ResponseEntity<String> result = test.editTarget(1, Map.of("randomCategory", 500L));
+
+    verify(database).getCurrentUser();
+    assertEquals(ResponseEntity.badRequest().body("Some targets were invalid!"), result);
+  }
+
+  @Test
+  void editBudgetNotLoggedIn() {
+    ResponseEntity<String> result = test.editTarget(2, Map.of("category", 500L));
+
+    verify(database).getCurrentUser();
+    assertEquals(ResponseEntity.internalServerError().build(), result);
+  }
+
+  @Test
+  void editBudgetRuntimeException() {
+    when(database.getCurrentUser()).thenThrow(RuntimeException.class);
+
+    ResponseEntity<String> result = test.editTarget(1, Map.of("category", 500L));
+
+    verify(database).getCurrentUser();
     assertEquals(ResponseEntity.internalServerError().build(), result);
   }
 }

@@ -3,13 +3,13 @@ package sp.financialytics.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import sp.financialytics.common.Database;
 import sp.financialytics.common.User;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("user")
@@ -30,6 +30,39 @@ public class UserController {
       response = ResponseEntity.ok(database.getCurrentUser());
     } catch (IndexOutOfBoundsException e) {
       LOG.error("Database not properly configured: ", e);
+    }
+
+    return response;
+  }
+
+  @PostMapping("target")
+  public ResponseEntity<String> editTarget(@RequestParam("uid") Integer uid, @RequestBody Map<String, Long> categories) {
+    ResponseEntity<String> response = ResponseEntity.internalServerError().build();
+    LOG.info("Editing targets: {}", categories);
+
+    try {
+      User currentUser = database.getCurrentUser();
+      if (!currentUser.getId().equals(uid)) {
+        throw new DataIntegrityViolationException("User id mismatch");
+      }
+
+      Map<String, Long> targets = currentUser.getTargets();
+      for (String category : categories.keySet()) {
+        if (!targets.containsKey(category)) {
+          LOG.warn("Category does not exist!");
+          response = ResponseEntity.badRequest().body("Some targets were invalid!");
+          throw new DataIntegrityViolationException("Target edit mismatch!");
+        }
+
+        targets.put(category, categories.get(category));
+      }
+
+      LOG.info("Targets successfully edited!");
+      response = ResponseEntity.ok("Targets successfully edited!");
+    } catch (DataIntegrityViolationException e) {
+      LOG.error("", e);
+    } catch (RuntimeException e) {
+      LOG.error("Error editing targets for: {}", uid, e);
     }
 
     return response;
