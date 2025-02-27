@@ -48,14 +48,14 @@ class UserTest {
 
   @Test
   void transactions() {
-    test.setTransactions(List.of(new Transaction("id", LocalDate.now(), "description", "category", 100)));
+    test.setTransactions(List.of(new Transaction("id", LocalDate.now(), "description", "category", 100L)));
 
     assertThat(test.getTransactions()).size().isEqualTo(1);
     assertEquals("id", test.getTransactions().get(0).getId());
     assertEquals(LocalDate.now(), test.getTransactions().get(0).getDate());
     assertEquals("description", test.getTransactions().get(0).getDescription());
     assertEquals("category", test.getTransactions().get(0).getCategory());
-    assertEquals(100, test.getTransactions().get(0).getAmount());
+    assertEquals(100L, test.getTransactions().get(0).getAmount());
   }
 
   @Test

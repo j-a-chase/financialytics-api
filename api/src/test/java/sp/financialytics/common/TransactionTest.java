@@ -31,9 +31,9 @@ class TransactionTest {
 
   @Test
   void amount() {
-    test.setAmount(100);
+    test.setAmount(100L);
 
-    assertEquals(100, test.getAmount());
+    assertEquals(100L, test.getAmount());
   }
 
   @Test
@@ -52,8 +52,8 @@ class TransactionTest {
 
   @Test
   void compareToDateDifference() {
-    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100);
-    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 2), "description", "category", 100);
+    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100L);
+    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 2), "description", "category", 100L);
 
     assertEquals(-1, test.compareTo(other));
     assertEquals(1, other.compareTo(test));
@@ -61,8 +61,8 @@ class TransactionTest {
 
   @Test
   void compareToCategoryDifference() {
-    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100);
-    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category!", 100);
+    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100L);
+    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category!", 100L);
 
     assertEquals(-1, test.compareTo(other));
     assertEquals(1, other.compareTo(test));
@@ -70,8 +70,8 @@ class TransactionTest {
 
   @Test
   void compareToAmountDifference() {
-    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100);
-    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 101);
+    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100L);
+    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 101L);
 
     assertEquals(-1, test.compareTo(other));
     assertEquals(1, other.compareTo(test));
@@ -79,8 +79,8 @@ class TransactionTest {
 
   @Test
   void compareToDescriptionDifference() {
-    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100);
-    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description!", "category", 100);
+    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100L);
+    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description!", "category", 100L);
 
     assertEquals(-1, test.compareTo(other));
     assertEquals(1, other.compareTo(test));
@@ -88,8 +88,8 @@ class TransactionTest {
 
   @Test
   void compareToEqual() {
-    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100);
-    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100);
+    test = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100L);
+    Transaction other = new Transaction("1-0", LocalDate.of(2025, 1, 1), "description", "category", 100L);
 
     assertEquals(0, test.compareTo(other));
     assertEquals(0, other.compareTo(test));

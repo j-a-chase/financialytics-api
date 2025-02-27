@@ -23,9 +23,9 @@ class TransactionControllerTest {
 
   private List<Transaction> createTestTransactions() {
     return List.of(
-            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117),
-            new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118),
-            new Transaction("1-2", LocalDate.of(2025, 2, 24), "No Description Set.", "income", 500)
+            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117L),
+            new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118L),
+            new Transaction("1-2", LocalDate.of(2025, 2, 24), "No Description Set.", "income", 500L)
     );
   }
 
@@ -78,7 +78,7 @@ class TransactionControllerTest {
   @Test
   void addTransaction() {
     try {
-      Transaction addedTransaction = new Transaction(null, LocalDate.now(), "description", "category", 100);
+      Transaction addedTransaction = new Transaction(null, LocalDate.now(), "description", "category", 100L);
       doNothing().when(database).update(any(File.class)); // prevents error from targeting main db in test
 
       ResponseEntity<String> result = test.addTransaction(addedTransaction);
@@ -101,7 +101,7 @@ class TransactionControllerTest {
   void addTransactionEmptyTransactionList() {
     try {
       database.getCurrentUser().setTransactions(new ArrayList<>());
-      Transaction addedTransaction = new Transaction(null, LocalDate.now(), "description", "category", 100);
+      Transaction addedTransaction = new Transaction(null, LocalDate.now(), "description", "category", 100L);
       doNothing().when(database).update(any(File.class)); // prevents error from targeting main db in test
 
       ResponseEntity<String> result = test.addTransaction(addedTransaction);
@@ -126,7 +126,7 @@ class TransactionControllerTest {
 
   @Test
   void addTransactionNullDate() {
-    ResponseEntity<String> result = test.addTransaction(new Transaction(null, null, "description", "category", 100));
+    ResponseEntity<String> result = test.addTransaction(new Transaction(null, null, "description", "category", 100L));
 
     assertEquals("Transaction object is null.", result.getBody());
   }
@@ -142,7 +142,7 @@ class TransactionControllerTest {
   void editTransaction() {
     try {
       Transaction transactionToEdit = createTestTransactions().get(0);
-      transactionToEdit.setAmount(500);
+      transactionToEdit.setAmount(500L);
       doNothing().when(database).update(any(File.class));
 
       ResponseEntity<String> result = test.editTransaction(transactionToEdit);
@@ -160,7 +160,7 @@ class TransactionControllerTest {
   @Test
   void editTransactionNotInList() {
     Transaction transactionToEdit = createTestTransactions().get(0);
-    transactionToEdit.setAmount(500);
+    transactionToEdit.setAmount(500L);
     transactionToEdit.setId("1-3");
 
     ResponseEntity<String> result = test.editTransaction(transactionToEdit);
@@ -172,7 +172,7 @@ class TransactionControllerTest {
   void editTransactionEmptyTransactionList() {
     database.getCurrentUser().setTransactions(new ArrayList<>());
     Transaction transactionToEdit = createTestTransactions().get(0);
-    transactionToEdit.setAmount(500);
+    transactionToEdit.setAmount(500L);
 
     ResponseEntity<String> result = test.editTransaction(transactionToEdit);
 
