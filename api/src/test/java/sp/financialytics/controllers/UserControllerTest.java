@@ -34,9 +34,9 @@ class UserControllerTest {
 
   private List<Transaction> createTestTransactions() {
     return List.of(
-            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117L),
-            new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118L),
-            new Transaction("1-2", LocalDate.of(2025, 2, 24), "No Description Set.", "income", 500L)
+            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117L, ""),
+            new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118L, ""),
+            new Transaction("1-2", LocalDate.of(2025, 2, 24), "No Description Set.", "income", 500L, "")
     );
   }
 

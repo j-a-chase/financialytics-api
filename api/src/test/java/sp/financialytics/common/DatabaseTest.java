@@ -22,7 +22,7 @@ class DatabaseTest {
 
   private List<Transaction> createTestTransactionList() {
     ArrayList<Transaction> transactions = new ArrayList<>();
-    transactions.add(new Transaction("id", LocalDate.now(), "description", "category", 1L));
+    transactions.add(new Transaction("id", LocalDate.now(), "description", "category", 1L, ""));
     return transactions;
   }
 

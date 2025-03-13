@@ -17,6 +17,7 @@ public class Transaction implements Comparable<Transaction> {
   private String description;
   private String category;
   private Long amount;
+  private String notes;
 
   @Override
   public int compareTo(Transaction other) {

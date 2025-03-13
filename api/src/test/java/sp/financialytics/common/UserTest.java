@@ -48,7 +48,7 @@ class UserTest {
 
   @Test
   void transactions() {
-    test.setTransactions(List.of(new Transaction("id", LocalDate.now(), "description", "category", 100L)));
+    test.setTransactions(List.of(new Transaction("id", LocalDate.now(), "description", "category", 100L, "")));
 
     assertThat(test.getTransactions()).size().isEqualTo(1);
     assertEquals("id", test.getTransactions().get(0).getId());
