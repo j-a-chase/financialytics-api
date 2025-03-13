@@ -43,6 +43,19 @@ public class TransactionController {
     return response;
   }
 
+  @GetMapping("detail")
+  public ResponseEntity<Transaction> getTransactionDetails(@RequestParam("tid") String tid) {
+    ResponseEntity<Transaction> response = ResponseEntity.internalServerError().build();
+    LOG.info("Retrieving {} for user: {}", tid, currentUser.getId());
+
+    if (currentUser.getId().equals(Integer.parseInt(tid.split("-")[0]))) {
+      response = ResponseEntity.ok(currentUser.getTransactions().get(Integer.parseInt(tid.split("-")[1])));
+      LOG.info("Transaction details retrieved!");
+    }
+
+    return response;
+  }
+
   @GetMapping("money-in")
   public ResponseEntity<List<Transaction>> getMoneyInTransactions(@RequestParam("uid") Integer uid) {
     ResponseEntity<List<Transaction>> response = ResponseEntity.internalServerError().build();
