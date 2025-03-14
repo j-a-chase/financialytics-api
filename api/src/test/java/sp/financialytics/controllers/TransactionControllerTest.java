@@ -18,12 +18,11 @@ import static org.mockito.Mockito.*;
 
 class TransactionControllerTest {
   TransactionController test;
-
   Database database;
 
   private List<Transaction> createTestTransactions() {
     return List.of(
-            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117L, ""),
+            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117L, "No notes."),
             new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118L, ""),
             new Transaction("1-2", LocalDate.of(2025, 2, 24), "No Description Set.", "income", 500L, "")
     );
@@ -54,6 +53,22 @@ class TransactionControllerTest {
   @Test
   void getAllTransactionsServerError() {
     ResponseEntity<List<Transaction>> result = test.getAllTransactions(2);
+
+    assertEquals(ResponseEntity.internalServerError().build(), result);
+  }
+
+  @Test
+  void getTransactionDetails() {
+    ResponseEntity<Transaction> result = test.getTransactionDetails("1-0");
+
+    Transaction body = result.getBody();
+    assertNotNull(body);
+    assertEquals(createTestTransactions().get(0), body);
+  }
+
+  @Test
+  void getTransactionDetailsServerError() {
+    ResponseEntity<Transaction> result = test.getTransactionDetails("2-0");
 
     assertEquals(ResponseEntity.internalServerError().build(), result);
   }
@@ -194,5 +209,57 @@ class TransactionControllerTest {
     ResponseEntity<String> result = test.editTransaction(null);
 
     assertEquals("Transaction object is null.", result.getBody());
+  }
+
+  private Transaction createTestTransactionForDelete() {
+    return new Transaction("1-3", LocalDate.now(), "transaction to be deleted", "category", 100L, "notes");
+  }
+
+  @Test
+  void deleteTransaction() {
+    try {
+      List<Transaction> userTransactions = database.getCurrentUser().getTransactions();
+      userTransactions.add(createTestTransactionForDelete());
+      doNothing().when(database).update(any(File.class));
+
+      ResponseEntity<String> result = test.deleteTransaction("1-3");
+
+      verify(database).update(any(File.class));
+      assertEquals("Transaction 1-3 deleted successfully!", result.getBody());
+      assertEquals(3, userTransactions.size());
+      assertEquals(createTestTransactions().get(0), userTransactions.get(0));
+      assertEquals(createTestTransactions().get(1), userTransactions.get(1));
+      assertEquals(createTestTransactions().get(2), userTransactions.get(2));
+    } catch (IOException e) {
+      fail(e);
+    }
+  }
+
+  @Test
+  void deleteTransactionIOException() {
+    try {
+      List<Transaction> userTransactions = database.getCurrentUser().getTransactions();
+      userTransactions.add(createTestTransactionForDelete());
+      doThrow(new IOException("io exception")).when(database).update(any(File.class));
+
+      ResponseEntity<String> result = test.deleteTransaction("1-3");
+
+      verify(database).update(any(File.class));
+      assertEquals("io exception", result.getBody());
+    } catch (IOException e) {
+      fail(e);
+    }
+  }
+
+  @Test
+  void deleteTransactionIndexOutOfBounds() {
+    try {
+      ResponseEntity<String> result = test.deleteTransaction("1-3");
+
+      verify(database, times(0)).update(any(File.class));
+      assertEquals("Critical Error: transaction index out of bounds!", result.getBody());
+    } catch (IOException e) {
+      fail(e);
+    }
   }
 }

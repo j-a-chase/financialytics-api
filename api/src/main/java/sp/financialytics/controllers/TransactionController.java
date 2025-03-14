@@ -153,4 +153,33 @@ public class TransactionController {
 
     return response;
   }
+
+  @DeleteMapping("delete")
+  public ResponseEntity<String> deleteTransaction(@RequestParam String tid) {
+    ResponseEntity<String> response;
+    LOG.info("Deleting transaction: {}", tid);
+
+    try {
+      int index = Integer.parseInt(tid.split("-")[1]);
+      if (index > currentUser.getTransactions().size() - 1) {
+        // we should never get here in a real execution, if we do, there's some serious synchronization issues between the
+        // client and database
+        throw new RuntimeException("Critical Error: transaction index out of bounds!");
+      }
+
+      currentUser.getTransactions().remove(index);
+      database.update(databaseFile);
+
+      LOG.info("Transaction {} deleted successfully!", tid);
+      response = ResponseEntity.ok(String.format("Transaction %s deleted successfully!", tid));
+    } catch (IOException e) {
+      LOG.error("IOException while updating database!", e);
+      response = ResponseEntity.internalServerError().body(e.getMessage());
+    } catch (RuntimeException e) {
+      LOG.error("", e);
+      response = ResponseEntity.internalServerError().body(e.getMessage());
+    }
+
+    return response;
+  }
 }
