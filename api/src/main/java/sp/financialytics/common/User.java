@@ -12,9 +12,10 @@ import java.util.Map;
 @AllArgsConstructor
 public class User {
   private Integer id;
-  private String email;
-  private String password;
   private String name;
+  private String password;
+  private String email;
+  private LeniencyLevel budgetLeniency;
   private List<Transaction> transactions;
   private Warning[] warningConfig;
   private Map<String, Long> targets;

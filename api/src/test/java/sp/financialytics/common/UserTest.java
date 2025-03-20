@@ -47,6 +47,13 @@ class UserTest {
   }
 
   @Test
+  void budgetLeniency() {
+    test.setBudgetLeniency(LeniencyLevel.NORMAL);
+
+    assertEquals(LeniencyLevel.NORMAL, test.getBudgetLeniency());
+  }
+
+  @Test
   void transactions() {
     test.setTransactions(List.of(new Transaction("id", LocalDate.now(), "description", "category", 100L, "")));
 

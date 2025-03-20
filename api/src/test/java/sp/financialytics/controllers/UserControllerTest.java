@@ -3,10 +3,7 @@ package sp.financialytics.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
-import sp.financialytics.common.Database;
-import sp.financialytics.common.Transaction;
-import sp.financialytics.common.User;
-import sp.financialytics.common.Warning;
+import sp.financialytics.common.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +50,7 @@ class UserControllerTest {
   }
 
   private User createTestUser() {
-    return new User(1, "example@gmail.com", "adminDev", "dev", createTestTransactions(), createTestWarningConfig(),
+    return new User(1, "example@gmail.com", "adminDev", "dev", LeniencyLevel.NORMAL, createTestTransactions(), createTestWarningConfig(),
             createTestTargetsMap());
   }
 
