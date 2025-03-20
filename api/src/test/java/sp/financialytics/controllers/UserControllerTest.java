@@ -15,6 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class UserControllerTest {
+  private final int UID = 1;
+
   UserController test;
   Database database;
 
@@ -31,7 +33,8 @@ class UserControllerTest {
 
   private List<Transaction> createTestTransactions() {
     return List.of(
-            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117L, ""),
+            new Transaction("1-0", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 117L,
+                            "No notes."),
             new Transaction("1-1", LocalDate.of(2025, 2, 19), "No Description Set.", "Not yet implemented.", 118L, ""),
             new Transaction("1-2", LocalDate.of(2025, 2, 24), "No Description Set.", "income", 500L, "")
     );
@@ -46,17 +49,17 @@ class UserControllerTest {
 
   private Map<String, Long> createTestTargetsMap() {
     return Map.of("income", 200000L, "food", 20000L, "living", 20001L, "entertainment", 20002L, "supplies", 20003L,
-            "education", 20004L, "other", 20005L);
+                  "education", 20004L, "other", 20005L);
   }
 
   private User createTestUser() {
-    return new User(1, "example@gmail.com", "adminDev", "dev", LeniencyLevel.NORMAL, createTestTransactions(), createTestWarningConfig(),
-            createTestTargetsMap());
+    return new User(UID, "dev", "adminDev", "example@gmail.com", LeniencyLevel.NORMAL, createTestTransactions(),
+                    createTestWarningConfig(), createTestTargetsMap());
   }
 
   @Test
   void initialize() {
-    ResponseEntity<User> result = test.initialize(1);
+    ResponseEntity<User> result = test.initialize(UID);
 
     assertNotNull(result.getBody());
     assertEquals(createTestUser(), result.getBody());
@@ -66,14 +69,14 @@ class UserControllerTest {
   void initializeNoUsers() {
     when(database.getCurrentUser()).thenThrow(IndexOutOfBoundsException.class);
 
-    ResponseEntity<User> result = test.initialize(1);
+    ResponseEntity<User> result = test.initialize(UID);
 
     assertEquals(ResponseEntity.internalServerError().build(), result);
   }
 
   @Test
   void editBudget() {
-    ResponseEntity<String> result = test.editTarget(1, Map.of("income", 500L));
+    ResponseEntity<String> result = test.editTarget(UID, Map.of("income", 500L));
 
     verify(database).getCurrentUser();
     assertNotNull(result.getBody());
@@ -82,7 +85,7 @@ class UserControllerTest {
 
   @Test
   void editBudgetFailedToFindCategoryToEdit() {
-    ResponseEntity<String> result = test.editTarget(1, Map.of("randomCategory", 500L));
+    ResponseEntity<String> result = test.editTarget(UID, Map.of("randomCategory", 500L));
 
     verify(database).getCurrentUser();
     assertEquals(ResponseEntity.badRequest().body("Some targets were invalid!"), result);
@@ -100,7 +103,24 @@ class UserControllerTest {
   void editBudgetRuntimeException() {
     when(database.getCurrentUser()).thenThrow(RuntimeException.class);
 
-    ResponseEntity<String> result = test.editTarget(1, Map.of("category", 500L));
+    ResponseEntity<String> result = test.editTarget(UID, Map.of("category", 500L));
+
+    verify(database).getCurrentUser();
+    assertEquals(ResponseEntity.internalServerError().build(), result);
+  }
+
+  @Test
+  void editLeniencyLevel() {
+    ResponseEntity<String> result = test.editLeniencyLevel(UID, LeniencyLevel.NORMAL);
+
+    verify(database).getCurrentUser();
+    assertNotNull(result.getBody());
+    assertEquals("Leniency level successfully updated!", result.getBody());
+  }
+
+  @Test
+  void editLeniencyLevelNotLoggedIn() {
+    ResponseEntity<String> result = test.editLeniencyLevel(2, LeniencyLevel.NORMAL);
 
     verify(database).getCurrentUser();
     assertEquals(ResponseEntity.internalServerError().build(), result);

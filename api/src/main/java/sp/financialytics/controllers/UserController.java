@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sp.financialytics.common.Database;
+import sp.financialytics.common.LeniencyLevel;
 import sp.financialytics.common.User;
 
 import java.util.Map;
@@ -63,6 +64,28 @@ public class UserController {
       LOG.error("", e);
     } catch (RuntimeException e) {
       LOG.error("Error editing targets for: {}", uid, e);
+    }
+
+    return response;
+  }
+
+  @PostMapping("leniency")
+  public ResponseEntity<String> editLeniencyLevel(@RequestParam("uid") Integer uid,
+                                                  @RequestBody LeniencyLevel leniency) {
+    ResponseEntity<String> response = ResponseEntity.internalServerError().build();
+    LOG.info("Editing leniency level: {}", leniency);
+
+    try {
+      User currentUser = database.getCurrentUser();
+      if (!currentUser.getId().equals(uid)) {
+        throw new DataIntegrityViolationException("User id mismatch");
+      }
+
+      currentUser.setBudgetLeniency(leniency);
+      LOG.info("Leniency level updated!");
+      response = ResponseEntity.ok("Leniency level successfully updated!");
+    } catch (DataIntegrityViolationException e) {
+      LOG.error("", e);
     }
 
     return response;

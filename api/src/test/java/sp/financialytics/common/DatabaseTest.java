@@ -36,8 +36,8 @@ class DatabaseTest {
   }
 
   private User createTestUser() {
-    return new User(1, "example@gmail.com", "adminDev", "dev", createTestTransactionList(), createTestWarningConfig(),
-            createTestTargetsMap());
+    return new User(1, "dev", "adminDev", "example@gmail.com", LeniencyLevel.NORMAL, createTestTransactionList(),
+            createTestWarningConfig(), createTestTargetsMap());
   }
 
   @Test
