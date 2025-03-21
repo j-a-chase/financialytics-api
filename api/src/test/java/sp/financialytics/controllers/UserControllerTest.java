@@ -28,7 +28,7 @@ class UserControllerTest {
       fail(e.getMessage());
     }
 
-    test = new UserController(database);
+    test = new UserController(database, mock()); // we don't actually want to modify the test db file
   }
 
   private List<Transaction> createTestTransactions() {
@@ -58,6 +58,20 @@ class UserControllerTest {
   }
 
   @Test
+  void constructor() {
+    try {
+      Database d = mock();
+      when(d.getCurrentUser()).thenThrow(new RuntimeException("Runtime error!"));
+
+      test = new UserController(d, mock());
+
+      fail("Runtime error did not rethrow.");
+    } catch (RuntimeException e) {
+      assertEquals("Runtime error!", e.getMessage());
+    }
+  }
+
+  @Test
   void initialize() {
     ResponseEntity<User> result = test.initialize(UID);
 
@@ -66,83 +80,139 @@ class UserControllerTest {
   }
 
   @Test
-  void initializeNoUsers() {
-    when(database.getCurrentUser()).thenThrow(IndexOutOfBoundsException.class);
-
-    ResponseEntity<User> result = test.initialize(UID);
-
-    assertEquals(ResponseEntity.internalServerError().build(), result);
-  }
-
-  @Test
   void editTarget() {
-    ResponseEntity<String> result = test.editTarget(UID, Map.of("income", 500L));
+    try {
+      doNothing().when(database).update(any(File.class));
 
-    verify(database).getCurrentUser();
-    assertNotNull(result.getBody());
-    assertEquals("Targets successfully edited!", result.getBody());
+      ResponseEntity<String> result = test.editTarget(UID, Map.of("income", 500L));
+
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.ok("Targets successfully edited!"), result);
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
   void editTargetFailedToFindCategoryToEdit() {
-    ResponseEntity<String> result = test.editTarget(UID, Map.of("randomCategory", 500L));
+    try {
+      ResponseEntity<String> result = test.editTarget(UID, Map.of("randomCategory", 500L));
 
-    verify(database).getCurrentUser();
-    assertEquals(ResponseEntity.badRequest().body("Some targets were invalid!"), result);
+      verify(database, times(0)).update(any(File.class));
+      assertEquals(ResponseEntity.badRequest().body("Target edit mismatch!"), result);
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
   void editTargetNotLoggedIn() {
-    ResponseEntity<String> result = test.editTarget(2, Map.of("category", 500L));
+    try {
+      ResponseEntity<String> result = test.editTarget(2, Map.of("category", 500L));
 
-    verify(database).getCurrentUser();
-    assertEquals(ResponseEntity.internalServerError().build(), result);
+      verify(database, times(0)).update(any(File.class));
+      assertEquals(ResponseEntity.badRequest().body("User id mismatch!"), result);
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
-  void editTargetRuntimeException() {
-    when(database.getCurrentUser()).thenThrow(RuntimeException.class);
+  void editTargetIOException() {
+    try {
+      doThrow(new IOException("ioexception")).when(database).update(any(File.class));
 
-    ResponseEntity<String> result = test.editTarget(UID, Map.of("category", 500L));
+      ResponseEntity<String> result = test.editTarget(UID, Map.of("income", 500L));
 
-    verify(database).getCurrentUser();
-    assertEquals(ResponseEntity.internalServerError().build(), result);
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.internalServerError().body("ioexception"), result);
+      assertEquals(createTestTargetsMap(), database.getCurrentUser().getTargets());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
   void updateTargets() {
-    Map<String, Long> targetsMap = Map.of("category", 500L);
+    try {
+      Map<String, Long> targetsMap = Map.of("category", 500L);
+      doNothing().when(database).update(any(File.class));
 
-    ResponseEntity<String> result = test.updateTargets(UID, targetsMap);
+      ResponseEntity<String> result = test.updateTargets(UID, targetsMap);
 
-    verify(database).getCurrentUser();
-    assertNotNull(result.getBody());
-    assertEquals("Targets successfully updated!", result.getBody());
-    assertEquals(targetsMap, database.getCurrentUser().getTargets());
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.ok("Targets successfully updated!"), result);
+      assertEquals(targetsMap, database.getCurrentUser().getTargets());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
   void updateTargetsNotLoggedIn() {
-    ResponseEntity<String> result = test.updateTargets(2, Map.of("category", 500L));
+    try {
+      ResponseEntity<String> result = test.updateTargets(2, Map.of("category", 500L));
 
-    verify(database).getCurrentUser();
-    assertEquals(ResponseEntity.internalServerError().build(), result);
+      verify(database, times(0)).update(any(File.class));
+      assertEquals(ResponseEntity.badRequest().body("User id mismatch!"), result);
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void updateTargetsIOException() {
+    try {
+      doThrow(new IOException("ioexception")).when(database).update(any(File.class));
+
+      ResponseEntity<String> result = test.updateTargets(UID, Map.of("category", 500L));
+
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.internalServerError().body("ioexception"), result);
+      assertEquals(createTestTargetsMap(), database.getCurrentUser().getTargets());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
   void editLeniencyLevel() {
-    ResponseEntity<String> result = test.editLeniencyLevel(UID, LeniencyLevel.NORMAL);
+    try {
+      doNothing().when(database).update(any(File.class));
 
-    verify(database).getCurrentUser();
-    assertNotNull(result.getBody());
-    assertEquals("Leniency level successfully updated!", result.getBody());
+      ResponseEntity<String> result = test.editLeniencyLevel(UID, LeniencyLevel.LENIENT);
+
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.ok("Leniency level successfully updated!"), result);
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
   void editLeniencyLevelNotLoggedIn() {
-    ResponseEntity<String> result = test.editLeniencyLevel(2, LeniencyLevel.NORMAL);
+    try {
+      ResponseEntity<String> result = test.editLeniencyLevel(2, LeniencyLevel.LENIENT);
 
-    verify(database).getCurrentUser();
-    assertEquals(ResponseEntity.internalServerError().build(), result);
+      verify(database, times(0)).update(any(File.class));
+      assertEquals(ResponseEntity.badRequest().body("User id mismatch!"), result);
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void editLeniencyLevelIOException() {
+    try {
+      doThrow(new IOException("ioexception")).when(database).update(any(File.class));
+
+      ResponseEntity<String> result = test.editLeniencyLevel(UID, LeniencyLevel.LENIENT);
+
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.internalServerError().body("ioexception"), result);
+      assertEquals(LeniencyLevel.NORMAL, database.getCurrentUser().getBudgetLeniency());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
   }
 }
