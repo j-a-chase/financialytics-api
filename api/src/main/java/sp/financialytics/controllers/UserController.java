@@ -69,6 +69,28 @@ public class UserController {
     return response;
   }
 
+  @PostMapping("targets/update")
+  public ResponseEntity<String> updateTargets(@RequestParam("uid") Integer uid,
+                                              @RequestBody Map<String, Long> categories) {
+    ResponseEntity<String> response = ResponseEntity.internalServerError().build();
+    LOG.info("Updating targets: {}", categories);
+
+    try {
+      User currentUser = database.getCurrentUser();
+      if (!currentUser.getId().equals(uid)) {
+        throw new DataIntegrityViolationException("User id mismatch");
+      }
+
+      currentUser.setTargets(categories);
+      LOG.info("Targets successfully updated!");
+      response = ResponseEntity.ok("Targets successfully updated!");
+    } catch (DataIntegrityViolationException e) {
+      LOG.error("", e);
+    }
+
+    return response;
+  }
+
   @PostMapping("leniency")
   public ResponseEntity<String> editLeniencyLevel(@RequestParam("uid") Integer uid,
                                                   @RequestBody LeniencyLevel leniency) {

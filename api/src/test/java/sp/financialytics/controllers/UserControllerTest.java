@@ -75,7 +75,7 @@ class UserControllerTest {
   }
 
   @Test
-  void editBudget() {
+  void editTarget() {
     ResponseEntity<String> result = test.editTarget(UID, Map.of("income", 500L));
 
     verify(database).getCurrentUser();
@@ -84,7 +84,7 @@ class UserControllerTest {
   }
 
   @Test
-  void editBudgetFailedToFindCategoryToEdit() {
+  void editTargetFailedToFindCategoryToEdit() {
     ResponseEntity<String> result = test.editTarget(UID, Map.of("randomCategory", 500L));
 
     verify(database).getCurrentUser();
@@ -92,7 +92,7 @@ class UserControllerTest {
   }
 
   @Test
-  void editBudgetNotLoggedIn() {
+  void editTargetNotLoggedIn() {
     ResponseEntity<String> result = test.editTarget(2, Map.of("category", 500L));
 
     verify(database).getCurrentUser();
@@ -100,10 +100,30 @@ class UserControllerTest {
   }
 
   @Test
-  void editBudgetRuntimeException() {
+  void editTargetRuntimeException() {
     when(database.getCurrentUser()).thenThrow(RuntimeException.class);
 
     ResponseEntity<String> result = test.editTarget(UID, Map.of("category", 500L));
+
+    verify(database).getCurrentUser();
+    assertEquals(ResponseEntity.internalServerError().build(), result);
+  }
+
+  @Test
+  void updateTargets() {
+    Map<String, Long> targetsMap = Map.of("category", 500L);
+
+    ResponseEntity<String> result = test.updateTargets(UID, targetsMap);
+
+    verify(database).getCurrentUser();
+    assertNotNull(result.getBody());
+    assertEquals("Targets successfully updated!", result.getBody());
+    assertEquals(targetsMap, database.getCurrentUser().getTargets());
+  }
+
+  @Test
+  void updateTargetsNotLoggedIn() {
+    ResponseEntity<String> result = test.updateTargets(2, Map.of("category", 500L));
 
     verify(database).getCurrentUser();
     assertEquals(ResponseEntity.internalServerError().build(), result);
