@@ -3,6 +3,7 @@ package sp.financialytics.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sp.financialytics.common.Database;
@@ -11,6 +12,7 @@ import sp.financialytics.common.User;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Objects.isNull;
@@ -32,12 +34,19 @@ public class TransactionController {
 
   @GetMapping("all")
   public ResponseEntity<List<Transaction>> getAllTransactions(@RequestParam("uid") Integer uid) {
-    ResponseEntity<List<Transaction>> response = ResponseEntity.internalServerError().build();
+    ResponseEntity<List<Transaction>> response;
     LOG.info("Retrieving transactions for user: {}", uid);
 
-    if (currentUser.getId().equals(uid)) {
+    try {
+      if (!currentUser.getId().equals(uid)) {
+        throw new DataIntegrityViolationException("User id mismatch!");
+      }
+
       response = ResponseEntity.ok(currentUser.getTransactions());
       LOG.info("Transactions retrieved!");
+    } catch (DataIntegrityViolationException e) {
+      response = ResponseEntity.badRequest().build();
+      LOG.error("", e);
     }
 
     return response;
@@ -45,12 +54,19 @@ public class TransactionController {
 
   @GetMapping("detail")
   public ResponseEntity<Transaction> getTransactionDetails(@RequestParam("tid") String tid) {
-    ResponseEntity<Transaction> response = ResponseEntity.internalServerError().build();
+    ResponseEntity<Transaction> response;
     LOG.info("Retrieving {} for user: {}", tid, currentUser.getId());
 
-    if (currentUser.getId().equals(Integer.parseInt(tid.split("-")[0]))) {
+    try {
+      if (!currentUser.getId().equals(Integer.parseInt(tid.split("-")[0]))) {
+        throw new DataIntegrityViolationException("User id mismatch!");
+      }
+
       response = ResponseEntity.ok(currentUser.getTransactions().get(Integer.parseInt(tid.split("-")[1])));
       LOG.info("Transaction details retrieved!");
+    } catch (DataIntegrityViolationException e) {
+      response = ResponseEntity.badRequest().build();
+      LOG.error("", e);
     }
 
     return response;
@@ -58,14 +74,22 @@ public class TransactionController {
 
   @GetMapping("money-in")
   public ResponseEntity<List<Transaction>> getMoneyInTransactions(@RequestParam("uid") Integer uid) {
-    ResponseEntity<List<Transaction>> response = ResponseEntity.internalServerError().build();
+    ResponseEntity<List<Transaction>> response;
     LOG.info("Retrieving money-in transactions for user: {}", uid);
 
-    if (currentUser.getId().equals(uid)) {
+    try {
+      if (!currentUser.getId().equals(uid)) {
+        throw new DataIntegrityViolationException("User id mismatch!");
+      }
+
       response = ResponseEntity.ok(currentUser.getTransactions()
-              .stream().filter(transaction -> transaction.getCategory().equals("income"))
+              .stream()
+              .filter(transaction -> transaction.getCategory().equals("income"))
               .toList());
       LOG.info("Money-in transactions retrieved!");
+    } catch (DataIntegrityViolationException e) {
+      response = ResponseEntity.badRequest().build();
+      LOG.error("", e);
     }
 
     return response;
@@ -81,19 +105,22 @@ public class TransactionController {
     }
 
     String previousTid = userTransactions.get(userTransactions.size() - 1).getId();
-    Integer tid = Integer.parseInt(previousTid.substring(2)) + 1;
+    Integer tid = Integer.parseInt(previousTid.split("-")[1]) + 1;
     return String.format("%s-%s", currentUser.getId(), tid);
   }
 
   @PostMapping("add")
   public ResponseEntity<String> addTransaction(@RequestBody Transaction transaction) {
     ResponseEntity<String> response;
+    List<Transaction> previousTransactions = new ArrayList<>(currentUser.getTransactions());
     LOG.info("Adding transaction: {}", transaction);
 
     try {
       if (isNullTransaction(transaction)) {
-        throw new IOException("Transaction object is null.");
+        throw new DataIntegrityViolationException("Transaction object is null.");
       }
+
+      // might want to add user validation here.
 
       // set the transaction id
       List<Transaction> userTransactions = currentUser.getTransactions();
@@ -102,12 +129,16 @@ public class TransactionController {
       // save to database
       userTransactions.add(transaction);
       database.update(databaseFile);
-      String responseText = String.format("Transaction #%s added successfully!", transaction.getId());
-      response = ResponseEntity.ok(responseText);
+
+      response = ResponseEntity.ok(String.format("Transaction #%s added successfully!", transaction.getId()));
       LOG.info("Transaction #{} added successfully!", transaction.getId());
+    } catch (DataIntegrityViolationException e) {
+      response = ResponseEntity.badRequest().body(e.getMessage());
+      LOG.error("Exception while updating database!", e);
     } catch (IOException e) {
       response = ResponseEntity.internalServerError().body(e.getMessage());
       LOG.error("Exception while updating database!", e);
+      currentUser.setTransactions(previousTransactions); // restore if database update failed
     }
 
     return response;
@@ -116,6 +147,7 @@ public class TransactionController {
   @PostMapping("edit")
   public ResponseEntity<String> editTransaction(@RequestBody Transaction transaction) {
     ResponseEntity<String> response;
+    List<Transaction> previousTransactions = new ArrayList<>(currentUser.getTransactions());
     LOG.info("Editing transaction: {}", transaction);
 
     try {
@@ -128,27 +160,21 @@ public class TransactionController {
         throw new RuntimeException("Transaction list is empty.");
       }
 
-      boolean edited = false;
-      for (int i = 0; i < userTransactions.size(); i++) {
-        if (!edited && userTransactions.get(i).getId().equals(transaction.getId())) {
-          userTransactions.set(i, transaction);
-          edited = true;
-        }
-      }
-
-      if (!edited) {
-        throw new RuntimeException("Transaction does not exist.");
-      }
-
+      userTransactions.set(Integer.parseInt(transaction.getId().split("-")[1]), transaction);
       database.update(databaseFile);
+
       response = ResponseEntity.ok(String.format("Transaction #%s edited successfully!", transaction.getId()));
       LOG.info("Transaction #{} edited successfully!", transaction.getId());
-    } catch (IOException e) {
-      response = ResponseEntity.internalServerError().body(e.getMessage());
-      LOG.error("IOException while updating database!", e);
+    } catch (DataIntegrityViolationException | IndexOutOfBoundsException e) {
+      response = ResponseEntity.badRequest().body(e.getMessage());
+      LOG.error("Exception while updating database: ", e);
     } catch (RuntimeException e) {
       response = ResponseEntity.internalServerError().body(e.getMessage());
-      LOG.error("RuntimeException while updating database!", e);
+      LOG.error("Database exception while editing transaction: ", e);
+    } catch (IOException e) {
+      response = ResponseEntity.internalServerError().body(e.getMessage());
+      LOG.error("Database exception while editing transaction: ", e);
+      currentUser.setTransactions(previousTransactions); // restore if database update failed
     }
 
     return response;
@@ -157,27 +183,26 @@ public class TransactionController {
   @DeleteMapping("delete")
   public ResponseEntity<String> deleteTransaction(@RequestParam String tid) {
     ResponseEntity<String> response;
+    List<Transaction> previousTransactions = new ArrayList<>(currentUser.getTransactions());
     LOG.info("Deleting transaction: {}", tid);
 
     try {
-      int index = Integer.parseInt(tid.split("-")[1]);
-      if (index > currentUser.getTransactions().size() - 1) {
-        // we should never get here in a real execution, if we do, there's some serious synchronization issues between the
-        // client and database
-        throw new RuntimeException("Critical Error: transaction index out of bounds!");
+      if (!currentUser.getId().equals(Integer.parseInt(tid.split("-")[0]))) {
+        throw new DataIntegrityViolationException("User id mismatch!");
       }
 
-      currentUser.getTransactions().remove(index);
+      currentUser.getTransactions().remove(Integer.parseInt(tid.split("-")[1]));
       database.update(databaseFile);
 
       LOG.info("Transaction {} deleted successfully!", tid);
       response = ResponseEntity.ok(String.format("Transaction %s deleted successfully!", tid));
+    } catch (IndexOutOfBoundsException | DataIntegrityViolationException e) {
+      response = ResponseEntity.badRequest().body(e.getMessage());
+      LOG.error("Exception while deleting transaction #{} from database: ", tid, e);
     } catch (IOException e) {
-      LOG.error("IOException while updating database!", e);
       response = ResponseEntity.internalServerError().body(e.getMessage());
-    } catch (RuntimeException e) {
-      LOG.error("", e);
-      response = ResponseEntity.internalServerError().body(e.getMessage());
+      LOG.error("Database exception while deleting transaction: ", e);
+      currentUser.setTransactions(previousTransactions); // restore if database update failed
     }
 
     return response;
