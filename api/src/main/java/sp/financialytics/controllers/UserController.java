@@ -85,7 +85,10 @@ public class UserController {
         targets.put(category, categories.get(category));
       }
 
-      database.update(databaseFile);
+      // both editTarget and editLeniencyLevel are called at the same time, resulting in this being needed
+      synchronized (database) {
+        database.update(databaseFile);
+      }
 
       LOG.info("Targets successfully edited!");
       response = ResponseEntity.ok("Targets successfully edited!");
@@ -143,7 +146,10 @@ public class UserController {
       }
 
       currentUser.setBudgetLeniency(leniency);
-      database.update(databaseFile);
+      // both editTarget and editLeniencyLevel are called at the same time, resulting in this being needed
+      synchronized (database) {
+        database.update(databaseFile);
+      }
 
       LOG.info("Leniency level updated!");
       response = ResponseEntity.ok("Leniency level successfully updated!");
