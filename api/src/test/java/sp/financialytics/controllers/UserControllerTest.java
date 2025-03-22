@@ -8,6 +8,7 @@ import sp.financialytics.common.*;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,6 +78,21 @@ class UserControllerTest {
 
     assertNotNull(result.getBody());
     assertEquals(createTestUser(), result.getBody());
+  }
+
+  @Test
+  void getTargets() {
+    ResponseEntity<Map<String, Long>> result = test.getTargets(UID);
+
+    assertNotNull(result.getBody());
+    assertEquals(createTestTargetsMap(), result.getBody());
+  }
+
+  @Test
+  void getTargetsNotLoggedIn() {
+    ResponseEntity<Map<String, Long>> result = test.getTargets(2);
+
+    assertEquals(ResponseEntity.badRequest().body(new HashMap<>()), result);
   }
 
   @Test

@@ -45,6 +45,25 @@ public class UserController {
     return ResponseEntity.ok(currentUser);
   }
 
+  @GetMapping("targets")
+  public ResponseEntity<Map<String, Long>> getTargets(@RequestParam("uid") Integer uid) {
+    ResponseEntity<Map<String, Long>> response;
+    LOG.info("Retrieving targets for user #{}", uid);
+
+    try {
+      if (!currentUser.getId().equals(uid)) {
+        throw new DataIntegrityViolationException("User id mismatch!");
+      }
+
+      response = ResponseEntity.ok(currentUser.getTargets());
+      LOG.info("Targets retrieved for user #{}", uid);
+    } catch (DataIntegrityViolationException e) {
+      response = ResponseEntity.badRequest().body(new HashMap<>());
+    }
+
+    return response;
+  }
+
   @PostMapping("target")
   public ResponseEntity<String> editTarget(@RequestParam("uid") Integer uid, @RequestBody Map<String, Long> categories) {
     ResponseEntity<String> response;
