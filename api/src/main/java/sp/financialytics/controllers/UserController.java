@@ -8,12 +8,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sp.financialytics.common.Database;
 import sp.financialytics.common.LeniencyLevel;
+import sp.financialytics.common.Target;
 import sp.financialytics.common.User;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("user")
@@ -46,8 +46,8 @@ public class UserController {
   }
 
   @GetMapping("targets")
-  public ResponseEntity<Map<String, Long>> getTargets(@RequestParam("uid") Integer uid) {
-    ResponseEntity<Map<String, Long>> response;
+  public ResponseEntity<List<Target>> getTargets(@RequestParam("uid") Integer uid) {
+    ResponseEntity<List<Target>> response;
     LOG.info("Retrieving targets for user #{}", uid);
 
     try {
@@ -58,32 +58,33 @@ public class UserController {
       response = ResponseEntity.ok(currentUser.getTargets());
       LOG.info("Targets retrieved for user #{}", uid);
     } catch (DataIntegrityViolationException e) {
-      response = ResponseEntity.badRequest().body(new HashMap<>());
+      response = ResponseEntity.badRequest().body(List.of());
     }
 
     return response;
   }
 
   @PostMapping("target")
-  public ResponseEntity<String> editTarget(@RequestParam("uid") Integer uid, @RequestBody Map<String, Long> categories) {
+  public ResponseEntity<String> editTarget(@RequestParam("uid") Integer uid, @RequestBody List<Target> newTargets) {
     ResponseEntity<String> response;
-    Map<String, Long> previousTargets = new HashMap<>(currentUser.getTargets());
-    LOG.info("Editing targets: {}", categories);
+    List<Target> previousTargets = new ArrayList<>(currentUser.getTargets());
+    LOG.info("Editing targets: {}", newTargets);
 
     try {
       if (!currentUser.getId().equals(uid)) {
         throw new DataIntegrityViolationException("User id mismatch!");
       }
 
-      Map<String, Long> targets = currentUser.getTargets();
-      for (String category : categories.keySet()) {
-        if (!targets.containsKey(category)) {
+      List<Target> targets = currentUser.getTargets();
+      Set<String> currentCategories = Set.of(targets.stream().map(Target::getName).toArray(String[]::new));
+      newTargets.forEach(target -> {
+        if (!currentCategories.contains(target.getName())) {
           LOG.warn("Category does not exist!");
           throw new DataIntegrityViolationException("Target edit mismatch!");
         }
 
-        targets.put(category, categories.get(category));
-      }
+        targets.get(target.getId()).setAmount(target.getAmount());
+      });
 
       // both editTarget and editLeniencyLevel are called at the same time, resulting in this being needed
       synchronized (database) {
@@ -106,17 +107,17 @@ public class UserController {
 
   @PostMapping("targets/update")
   public ResponseEntity<String> updateTargets(@RequestParam("uid") Integer uid,
-                                              @RequestBody Map<String, Long> categories) {
+                                              @RequestBody List<Target> newTargets) {
     ResponseEntity<String> response;
-    Map<String, Long> previousTargets = new HashMap<>(currentUser.getTargets());
-    LOG.info("Updating targets: {}", categories);
+    List<Target> previousTargets = new ArrayList<>(currentUser.getTargets());
+    LOG.info("Updating targets: {}", newTargets);
 
     try {
       if (!currentUser.getId().equals(uid)) {
         throw new DataIntegrityViolationException("User id mismatch!");
       }
 
-      currentUser.setTargets(categories);
+      currentUser.setTargets(newTargets);
       database.update(databaseFile);
 
       LOG.info("Targets successfully updated!");

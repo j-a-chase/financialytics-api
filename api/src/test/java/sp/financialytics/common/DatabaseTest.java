@@ -10,7 +10,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -30,14 +29,16 @@ class DatabaseTest {
     return new Warning[] { new Warning("hide_monthly_budget", true, false) };
   }
 
-  private Map<String, Long> createTestTargetsMap() {
-    return Map.of("income", 200000L, "food", 20000L, "living", 20001L, "entertainment", 20002L, "supplies", 20003L,
-            "education", 20004L, "other", 20005L);
+  private List<Target> createTestTargets() {
+    return new ArrayList<>(List.of(new Target(0, "income", 200000L, false), new Target(1, "food", 20000L, true),
+            new Target(2, "living", 20001L, true), new Target(3, "entertainment", 20002L, true),
+            new Target(4, "supplies", 20003L, true), new Target(5, "education", 20004L, true),
+            new Target(6, "other", 20005L, true)));
   }
 
   private User createTestUser() {
     return new User(1, "dev", "adminDev", "example@gmail.com", LeniencyLevel.NORMAL, createTestTransactionList(),
-            createTestWarningConfig(), createTestTargetsMap());
+            createTestWarningConfig(), createTestTargets());
   }
 
   @Test

@@ -8,9 +8,7 @@ import sp.financialytics.common.*;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -48,14 +46,16 @@ class UserControllerTest {
     };
   }
 
-  private Map<String, Long> createTestTargetsMap() {
-    return Map.of("income", 200000L, "food", 20000L, "living", 20001L, "entertainment", 20002L, "supplies", 20003L,
-                  "education", 20004L, "other", 20005L);
+  private List<Target> createTestTargets() {
+    return List.of(new Target(0, "income", 200000L, false), new Target(1, "food", 20000L, true),
+                   new Target(2, "living", 20001L, true), new Target(3, "entertainment", 20002L, true),
+                   new Target(4, "supplies", 20003L, true), new Target(5, "education", 20004L, true),
+                   new Target(6, "other", 20005L, true));
   }
 
   private User createTestUser() {
     return new User(UID, "dev", "adminDev", "example@gmail.com", LeniencyLevel.NORMAL, createTestTransactions(),
-                    createTestWarningConfig(), createTestTargetsMap());
+                    createTestWarningConfig(), createTestTargets());
   }
 
   @Test
@@ -82,17 +82,21 @@ class UserControllerTest {
 
   @Test
   void getTargets() {
-    ResponseEntity<Map<String, Long>> result = test.getTargets(UID);
+    ResponseEntity<List<Target>> result = test.getTargets(UID);
 
     assertNotNull(result.getBody());
-    assertEquals(createTestTargetsMap(), result.getBody());
+    assertEquals(createTestTargets(), result.getBody());
   }
 
   @Test
   void getTargetsNotLoggedIn() {
-    ResponseEntity<Map<String, Long>> result = test.getTargets(2);
+    ResponseEntity<List<Target>> result = test.getTargets(2);
 
-    assertEquals(ResponseEntity.badRequest().body(new HashMap<>()), result);
+    assertEquals(ResponseEntity.badRequest().body(List.of()), result);
+  }
+
+  private List<Target> createTestTarget() {
+    return List.of(new Target(null, "food", 100L, true));
   }
 
   @Test
@@ -100,7 +104,7 @@ class UserControllerTest {
     try {
       doNothing().when(database).update(any(File.class));
 
-      ResponseEntity<String> result = test.editTarget(UID, Map.of("income", 500L));
+      ResponseEntity<String> result = test.editTarget(UID, createTestTarget());
 
       verify(database).update(any(File.class));
       assertEquals(ResponseEntity.ok("Targets successfully edited!"), result);
@@ -112,7 +116,9 @@ class UserControllerTest {
   @Test
   void editTargetFailedToFindCategoryToEdit() {
     try {
-      ResponseEntity<String> result = test.editTarget(UID, Map.of("randomCategory", 500L));
+      List<Target> testTarget = createTestTarget();
+      testTarget.get(0).setName("random");
+      ResponseEntity<String> result = test.editTarget(UID, testTarget);
 
       verify(database, times(0)).update(any(File.class));
       assertEquals(ResponseEntity.badRequest().body("Target edit mismatch!"), result);
@@ -124,7 +130,7 @@ class UserControllerTest {
   @Test
   void editTargetNotLoggedIn() {
     try {
-      ResponseEntity<String> result = test.editTarget(2, Map.of("category", 500L));
+      ResponseEntity<String> result = test.editTarget(2, createTestTarget());
 
       verify(database, times(0)).update(any(File.class));
       assertEquals(ResponseEntity.badRequest().body("User id mismatch!"), result);
@@ -138,11 +144,11 @@ class UserControllerTest {
     try {
       doThrow(new IOException("ioexception")).when(database).update(any(File.class));
 
-      ResponseEntity<String> result = test.editTarget(UID, Map.of("income", 500L));
+      ResponseEntity<String> result = test.editTarget(UID, createTestTarget());
 
       verify(database).update(any(File.class));
       assertEquals(ResponseEntity.internalServerError().body("ioexception"), result);
-      assertEquals(createTestTargetsMap(), database.getCurrentUser().getTargets());
+      assertEquals(createTestTargets(), database.getCurrentUser().getTargets());
     } catch (IOException e) {
       fail(e.getMessage());
     }
@@ -151,14 +157,14 @@ class UserControllerTest {
   @Test
   void updateTargets() {
     try {
-      Map<String, Long> targetsMap = Map.of("category", 500L);
+      List<Target> testTarget = createTestTarget();
       doNothing().when(database).update(any(File.class));
 
-      ResponseEntity<String> result = test.updateTargets(UID, targetsMap);
+      ResponseEntity<String> result = test.updateTargets(UID, testTarget);
 
       verify(database).update(any(File.class));
       assertEquals(ResponseEntity.ok("Targets successfully updated!"), result);
-      assertEquals(targetsMap, database.getCurrentUser().getTargets());
+      assertEquals(testTarget, database.getCurrentUser().getTargets());
     } catch (IOException e) {
       fail(e.getMessage());
     }
@@ -167,7 +173,7 @@ class UserControllerTest {
   @Test
   void updateTargetsNotLoggedIn() {
     try {
-      ResponseEntity<String> result = test.updateTargets(2, Map.of("category", 500L));
+      ResponseEntity<String> result = test.updateTargets(2, createTestTarget());
 
       verify(database, times(0)).update(any(File.class));
       assertEquals(ResponseEntity.badRequest().body("User id mismatch!"), result);
@@ -181,11 +187,11 @@ class UserControllerTest {
     try {
       doThrow(new IOException("ioexception")).when(database).update(any(File.class));
 
-      ResponseEntity<String> result = test.updateTargets(UID, Map.of("category", 500L));
+      ResponseEntity<String> result = test.updateTargets(UID, createTestTarget());
 
       verify(database).update(any(File.class));
       assertEquals(ResponseEntity.internalServerError().body("ioexception"), result);
-      assertEquals(createTestTargetsMap(), database.getCurrentUser().getTargets());
+      assertEquals(createTestTargets(), database.getCurrentUser().getTargets());
     } catch (IOException e) {
       fail(e.getMessage());
     }

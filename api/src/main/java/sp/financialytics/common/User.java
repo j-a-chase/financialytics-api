@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -18,5 +17,5 @@ public class User {
   private LeniencyLevel budgetLeniency;
   private List<Transaction> transactions;
   private Warning[] warningConfig;
-  private Map<String, Long> targets;
+  private List<Target> targets;
 }

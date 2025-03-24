@@ -63,9 +63,15 @@ public class Database {
     // sort transactions prior to updating the database
     List<Transaction> transactions = getCurrentUser().getTransactions();
     transactions.sort(Transaction::compareTo);
+
     for (int i = 0; i < transactions.size(); i++) {
       String id = String.format("%s-%s", getCurrentUser().getId(), i);
       transactions.get(i).setId(id);
+    }
+
+    List<Target> targets = getCurrentUser().getTargets();
+    for (int i = 0; i < targets.size(); i++) {
+      targets.get(i).setId(i);
     }
 
     mapper.writeValue(writeFile, this);
