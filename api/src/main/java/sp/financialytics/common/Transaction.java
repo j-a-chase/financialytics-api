@@ -7,6 +7,17 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
+/**
+ * Stores everything we need to know about a financial Transaction:
+ *  The id is made up of the following: "userId-transactionIndex"
+ *    - This allows for more efficient handling of the transaction within the list of transactions
+ *    - Easily links the user to their transactions
+ *  The date the transaction was made
+ *  A description of what the transaction was for
+ *  The designated category(target) for the transaction (may end up making this a Target object)
+ *  The amount of the transaction, stored lossless as a Long
+ *  Any further notes about the transaction, which can be viewed on the details page within the application
+*/
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

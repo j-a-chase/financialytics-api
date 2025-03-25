@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * This class is not yet used within the project.
+*/
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

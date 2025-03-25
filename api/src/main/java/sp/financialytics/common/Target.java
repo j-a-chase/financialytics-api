@@ -4,6 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents a Target and its needed information for the project (aka category)
+ * Stores the target name, budget amount for that target, and whether it should be included in the monthly budget or not
+*/
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

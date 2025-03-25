@@ -40,6 +40,7 @@ public class Database {
     return users.get(0);
   }
 
+  // ensures the ObjectMapper is configured for LocalDate properly
   private static ObjectMapper configureObjectMapper() {
     ObjectMapper mapper = new ObjectMapper();
     mapper.registerModule(new JavaTimeModule());
@@ -47,6 +48,7 @@ public class Database {
     return mapper;
   }
 
+  // reads in the db JSON file and gives us a Database object to work with
   public static Database load(File databaseFile) throws IOException {
     try {
       return configureObjectMapper().readValue(databaseFile, Database.class);
@@ -56,6 +58,7 @@ public class Database {
     }
   }
 
+  // uses the Database object to update the JSON file with any changes
   public void update(File writeFile) throws IOException {
     ObjectMapper mapper = configureObjectMapper();
     mapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -64,11 +67,13 @@ public class Database {
     List<Transaction> transactions = getCurrentUser().getTransactions();
     transactions.sort(Transaction::compareTo);
 
+    // update transaction ids after sorting
     for (int i = 0; i < transactions.size(); i++) {
       String id = String.format("%s-%s", getCurrentUser().getId(), i);
       transactions.get(i).setId(id);
     }
 
+    // ensure new/edited targets have the proper ids
     List<Target> targets = getCurrentUser().getTargets();
     for (int i = 0; i < targets.size(); i++) {
       targets.get(i).setId(i);
