@@ -95,8 +95,8 @@ class UserControllerTest {
     assertEquals(ResponseEntity.badRequest().body(List.of()), result);
   }
 
-  private List<Target> createTestTarget() {
-    return List.of(new Target(null, "food", 100L, true));
+  private List<Target> createTestTarget(Integer id) {
+    return List.of(new Target(id, "food", 100L, true));
   }
 
   @Test
@@ -104,7 +104,7 @@ class UserControllerTest {
     try {
       doNothing().when(database).update(any(File.class));
 
-      ResponseEntity<String> result = test.editTarget(UID, createTestTarget());
+      ResponseEntity<String> result = test.editTarget(UID, createTestTarget(0));
 
       verify(database).update(any(File.class));
       assertEquals(ResponseEntity.ok("Targets successfully edited!"), result);
@@ -116,7 +116,7 @@ class UserControllerTest {
   @Test
   void editTargetFailedToFindCategoryToEdit() {
     try {
-      List<Target> testTarget = createTestTarget();
+      List<Target> testTarget = createTestTarget(0);
       testTarget.get(0).setName("random");
       ResponseEntity<String> result = test.editTarget(UID, testTarget);
 
@@ -130,7 +130,7 @@ class UserControllerTest {
   @Test
   void editTargetNotLoggedIn() {
     try {
-      ResponseEntity<String> result = test.editTarget(2, createTestTarget());
+      ResponseEntity<String> result = test.editTarget(2, createTestTarget(0));
 
       verify(database, times(0)).update(any(File.class));
       assertEquals(ResponseEntity.badRequest().body("User id mismatch!"), result);
@@ -144,7 +144,7 @@ class UserControllerTest {
     try {
       doThrow(new IOException("ioexception")).when(database).update(any(File.class));
 
-      ResponseEntity<String> result = test.editTarget(UID, createTestTarget());
+      ResponseEntity<String> result = test.editTarget(UID, createTestTarget(0));
 
       verify(database).update(any(File.class));
       assertEquals(ResponseEntity.internalServerError().body("ioexception"), result);
@@ -157,7 +157,7 @@ class UserControllerTest {
   @Test
   void updateTargets() {
     try {
-      List<Target> testTarget = createTestTarget();
+      List<Target> testTarget = createTestTarget(null);
       doNothing().when(database).update(any(File.class));
 
       ResponseEntity<String> result = test.updateTargets(UID, testTarget);
@@ -173,7 +173,7 @@ class UserControllerTest {
   @Test
   void updateTargetsNotLoggedIn() {
     try {
-      ResponseEntity<String> result = test.updateTargets(2, createTestTarget());
+      ResponseEntity<String> result = test.updateTargets(2, createTestTarget(null));
 
       verify(database, times(0)).update(any(File.class));
       assertEquals(ResponseEntity.badRequest().body("User id mismatch!"), result);
@@ -187,7 +187,7 @@ class UserControllerTest {
     try {
       doThrow(new IOException("ioexception")).when(database).update(any(File.class));
 
-      ResponseEntity<String> result = test.updateTargets(UID, createTestTarget());
+      ResponseEntity<String> result = test.updateTargets(UID, createTestTarget(null));
 
       verify(database).update(any(File.class));
       assertEquals(ResponseEntity.internalServerError().body("ioexception"), result);

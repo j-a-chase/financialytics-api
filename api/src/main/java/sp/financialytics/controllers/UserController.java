@@ -64,10 +64,19 @@ public class UserController {
     return response;
   }
 
+  private List<Target> backupTargetList(List<Target> targets) {
+    List<Target> backupTargets = new ArrayList<>();
+    for (Target target : targets) {
+      backupTargets.add(target.clone());
+    }
+
+    return backupTargets;
+  }
+
   @PostMapping("target")
   public ResponseEntity<String> editTarget(@RequestParam("uid") Integer uid, @RequestBody List<Target> newTargets) {
     ResponseEntity<String> response;
-    List<Target> previousTargets = new ArrayList<>(currentUser.getTargets());
+    List<Target> previousTargets = backupTargetList(currentUser.getTargets());
     LOG.info("Editing targets: {}", newTargets);
 
     try {
@@ -109,7 +118,7 @@ public class UserController {
   public ResponseEntity<String> updateTargets(@RequestParam("uid") Integer uid,
                                               @RequestBody List<Target> newTargets) {
     ResponseEntity<String> response;
-    List<Target> previousTargets = new ArrayList<>(currentUser.getTargets());
+    List<Target> previousTargets = backupTargetList(currentUser.getTargets());
     LOG.info("Updating targets: {}", newTargets);
 
     try {
