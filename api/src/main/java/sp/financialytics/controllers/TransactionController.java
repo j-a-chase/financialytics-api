@@ -17,6 +17,9 @@ import java.util.List;
 
 import static java.util.Objects.isNull;
 
+/**
+ * All needed endpoints for working with Transactions.
+*/
 @RestController
 @RequestMapping("transaction")
 public class TransactionController {
@@ -32,6 +35,7 @@ public class TransactionController {
     this.currentUser = database.getCurrentUser();
   }
 
+  // retrieves all transactions for a specific user
   @GetMapping("all")
   public ResponseEntity<List<Transaction>> getAllTransactions(@RequestParam("uid") Integer uid) {
     ResponseEntity<List<Transaction>> response;
@@ -52,6 +56,7 @@ public class TransactionController {
     return response;
   }
 
+  // retrieves transaction information for a single transaction
   @GetMapping("detail")
   public ResponseEntity<Transaction> getTransactionDetails(@RequestParam("tid") String tid) {
     ResponseEntity<Transaction> response;
@@ -72,6 +77,7 @@ public class TransactionController {
     return response;
   }
 
+  // retrieves all transactions under the target 'income'
   @GetMapping("money-in")
   public ResponseEntity<List<Transaction>> getMoneyInTransactions(@RequestParam("uid") Integer uid) {
     ResponseEntity<List<Transaction>> response;
@@ -95,10 +101,7 @@ public class TransactionController {
     return response;
   }
 
-  private boolean isNullTransaction(Transaction transaction) {
-    return isNull(transaction) || isNull(transaction.getDate()) || isNull(transaction.getAmount());
-  }
-
+  // calculates the next tid value and returns it
   private String setNextTid(List<Transaction> userTransactions) {
     if (userTransactions.isEmpty()) {
       return "1-0";
@@ -109,6 +112,7 @@ public class TransactionController {
     return String.format("%s-%s", currentUser.getId(), tid);
   }
 
+  // adds a transaction to the transaction list
   @PostMapping("add")
   public ResponseEntity<String> addTransaction(@RequestBody Transaction transaction) {
     ResponseEntity<String> response;
@@ -116,7 +120,8 @@ public class TransactionController {
     LOG.info("Adding transaction: {}", transaction);
 
     try {
-      if (isNullTransaction(transaction)) {
+      // only scenarios where we're worried about a null value
+      if (isNull(transaction) || isNull(transaction.getDate()) || isNull(transaction.getAmount())) {
         throw new DataIntegrityViolationException("Transaction object is null.");
       }
 
@@ -144,6 +149,7 @@ public class TransactionController {
     return response;
   }
 
+  // edits a single transaction within the transaction list
   @PostMapping("edit")
   public ResponseEntity<String> editTransaction(@RequestBody Transaction transaction) {
     ResponseEntity<String> response;
@@ -180,6 +186,7 @@ public class TransactionController {
     return response;
   }
 
+  // removes a transaction from the transaction list
   @DeleteMapping("delete")
   public ResponseEntity<String> deleteTransaction(@RequestParam String tid) {
     ResponseEntity<String> response;

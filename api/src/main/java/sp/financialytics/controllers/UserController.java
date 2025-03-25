@@ -15,6 +15,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * All needed endpoints for working with the user and the user's information
+ */
 @RestController
 @RequestMapping("user")
 public class UserController {
@@ -38,6 +41,7 @@ public class UserController {
   }
 
   // This endpoint will need adjusting when scaling to handle more than a single local user.
+  // As of right now: returns the current user (which is the only user)
   @GetMapping("initialize")
   public ResponseEntity<User> initialize(@RequestParam("uid") Integer uid) {
     LOG.info("Retrieving user: {}", uid);
@@ -45,6 +49,7 @@ public class UserController {
     return ResponseEntity.ok(currentUser);
   }
 
+  // retrieves the targets for the given uid
   @GetMapping("targets")
   public ResponseEntity<List<Target>> getTargets(@RequestParam("uid") Integer uid) {
     ResponseEntity<List<Target>> response;
@@ -64,6 +69,7 @@ public class UserController {
     return response;
   }
 
+  // deep copies a list of Targets
   private List<Target> backupTargetList(List<Target> targets) {
     List<Target> backupTargets = new ArrayList<>();
     for (Target target : targets) {
@@ -73,6 +79,7 @@ public class UserController {
     return backupTargets;
   }
 
+  // edits provided targets within the target list
   @PostMapping("target")
   public ResponseEntity<String> editTarget(@RequestParam("uid") Integer uid, @RequestBody List<Target> newTargets) {
     ResponseEntity<String> response;
@@ -85,7 +92,9 @@ public class UserController {
       }
 
       List<Target> targets = currentUser.getTargets();
+      // creates a set of the current target names
       Set<String> currentCategories = Set.of(targets.stream().map(Target::getName).toArray(String[]::new));
+
       newTargets.forEach(target -> {
         if (!currentCategories.contains(target.getName())) {
           LOG.warn("Category does not exist!");
@@ -114,6 +123,7 @@ public class UserController {
     return response;
   }
 
+  // updates entire target list, allowing for addition, removal, or simple editing of targets
   @PostMapping("targets/update")
   public ResponseEntity<String> updateTargets(@RequestParam("uid") Integer uid,
                                               @RequestBody List<Target> newTargets) {
@@ -143,6 +153,7 @@ public class UserController {
     return response;
   }
 
+  // changes the leniency level based on the user selection
   @PostMapping("leniency")
   public ResponseEntity<String> editLeniencyLevel(@RequestParam("uid") Integer uid,
                                                   @RequestBody LeniencyLevel leniency) {
