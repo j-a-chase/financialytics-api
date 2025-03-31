@@ -11,6 +11,8 @@ Financialytics is a QuickBooks-inspired program for personal use. It's designed 
 
 Financialytics is still under heavy development, with many exciting features on the horizon, but it isn't quite ready for widespread use on the web. However, if you're technologically adept and have the right resources, you'll be able to run your own local instance of Financialytics with ease and be able to have quick and easy financial tracking in no time. Simply ensure that both the <a href="https://github.com/j-a-chase/financialytics-server">server</a> and this API are running on your local machine, and you'll be able to explore and use the application.
 
+The ```empty-db.json``` file provided in ```api/src/main/resources``` can be renamed to ```db.json``` to allow the API to be used. Configure the file at your own risk. There are some fields not currently being used, but editing the file without knowing what you're doing could result in loss of data.
+
 Financialytics currently allows you to categorize and track your transactions by adding, editing, or deleting them. It also allows you to customize your targets, allowing for the addition of financial goals, new categories, or changing the budget amounts for your categories. There's currently no support for separating transaction totals by month, but that feature is first on the list of many to be implemented as time allows.
 
 ### Resources Used

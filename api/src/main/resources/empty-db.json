@@ -1,0 +1,58 @@
+{
+  "name": "Financialytics DB",
+  "users": [
+    {
+      "id": 1,
+      "name": "Your Name Here",
+      "password": "Your Very Unsecure Password Here",
+      "email": "example@gmail.com",
+      "budgetLeniency" : "STRICT",
+      "transactions": [],
+      "warningConfig": [],
+      "targets": [
+        {
+          "id" : 0,
+          "name" : "income",
+          "amount" : 0,
+          "included" : false
+        },
+        {
+          "id" : 1,
+          "name" : "food",
+          "amount" : 0,
+          "included" : true
+        },
+        {
+          "id" : 2,
+          "name" : "living",
+          "amount" : 0,
+          "included" : true
+        },
+        {
+          "id" : 3,
+          "name" : "entertainment",
+          "amount" : 0,
+          "included" : true
+        },
+        {
+          "id" : 4,
+          "name" : "supplies",
+          "amount" : 0,
+          "included" : true
+        },
+        {
+          "id" : 5,
+          "name" : "education",
+          "amount" : 0,
+          "included" : true
+        },
+        {
+          "id" : 6,
+          "name" : "other",
+          "amount" : 0,
+          "included" : true
+        }
+      ]
+    }
+  ]
+}
