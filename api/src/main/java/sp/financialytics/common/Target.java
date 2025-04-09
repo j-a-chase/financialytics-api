@@ -23,18 +23,14 @@ public class Target implements Comparable<Target>, Cloneable {
   }
 
   @Override
-  public Target clone() {
-    try {
-      Target clone = (Target) super.clone();
+  public Target clone() throws CloneNotSupportedException {
+    Target clone = (Target) super.clone();
 
-      clone.id = id;
-      clone.name = name;
-      clone.amount = amount;
-      clone.included = included;
+    clone.id = id;
+    clone.name = name;
+    clone.amount = amount;
+    clone.included = included;
 
-      return clone;
-    } catch (CloneNotSupportedException e) {
-      throw new AssertionError();
-    }
+    return clone;
   }
 }

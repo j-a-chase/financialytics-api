@@ -8,6 +8,7 @@ import sp.financialytics.common.*;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -118,11 +119,34 @@ class UserControllerTest {
     try {
       List<Target> testTarget = createTestTarget(0);
       testTarget.get(0).setName("random");
+
       ResponseEntity<String> result = test.editTarget(UID, testTarget);
 
       verify(database, times(0)).update(any(File.class));
       assertEquals(ResponseEntity.badRequest().body("Target edit mismatch!"), result);
     } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void editTargetBackupCloneException() {
+    try {
+      User mockUser = mock();
+      Target mockTarget = mock();
+      List<Target> testTarget = List.of(mockTarget);
+      List<User> mockUsers = new ArrayList<>();
+      mockUsers.add(mockUser);
+      database.setUsers(mockUsers);
+      test = new UserController(database, mock());
+      when(mockUser.getTargets()).thenReturn(testTarget);
+      when(mockTarget.clone()).thenThrow(new CloneNotSupportedException("Clone error!"));
+
+      ResponseEntity<String> result = test.editTarget(UID, testTarget);
+
+      verify(database, times(0)).update(any(File.class));
+      assertEquals(ResponseEntity.internalServerError().body("Clone error!"), result);
+    } catch (CloneNotSupportedException | IOException e) {
       fail(e.getMessage());
     }
   }
@@ -166,6 +190,28 @@ class UserControllerTest {
       assertEquals(ResponseEntity.ok("Targets successfully updated!"), result);
       assertEquals(testTarget, database.getCurrentUser().getTargets());
     } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void updateTargetsBackupCloneException() {
+    try {
+      User mockUser = mock();
+      Target mockTarget = mock();
+      List<Target> testTarget = List.of(mockTarget);
+      List<User> mockUsers = new ArrayList<>();
+      mockUsers.add(mockUser);
+      database.setUsers(mockUsers);
+      test = new UserController(database, mock());
+      when(mockUser.getTargets()).thenReturn(testTarget);
+      when(mockTarget.clone()).thenThrow(new CloneNotSupportedException("Clone error!"));
+
+      ResponseEntity<String> result = test.updateTargets(UID, testTarget);
+
+      verify(database, times(0)).update(any(File.class));
+      assertEquals(ResponseEntity.internalServerError().body("Clone error!"), result);
+    } catch (CloneNotSupportedException | IOException e) {
       fail(e.getMessage());
     }
   }

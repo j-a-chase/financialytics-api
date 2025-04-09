@@ -70,7 +70,7 @@ public class UserController {
   }
 
   // deep copies a list of Targets
-  private List<Target> backupTargetList(List<Target> targets) {
+  private List<Target> backupTargetList(List<Target> targets) throws CloneNotSupportedException {
     List<Target> backupTargets = new ArrayList<>();
     for (Target target : targets) {
       backupTargets.add(target.clone());
@@ -83,8 +83,14 @@ public class UserController {
   @PostMapping("target")
   public ResponseEntity<String> editTarget(@RequestParam("uid") Integer uid, @RequestBody List<Target> newTargets) {
     ResponseEntity<String> response;
-    List<Target> previousTargets = backupTargetList(currentUser.getTargets());
-    LOG.info("Editing targets: {}", newTargets);
+    List<Target> previousTargets;
+    try {
+      previousTargets = backupTargetList(currentUser.getTargets());
+      LOG.info("Editing targets: {}", newTargets);
+    } catch (CloneNotSupportedException e) {
+      LOG.error(e.getMessage());
+      return ResponseEntity.internalServerError().body(e.getMessage());
+    }
 
     try {
       if (!currentUser.getId().equals(uid)) {
@@ -128,8 +134,14 @@ public class UserController {
   public ResponseEntity<String> updateTargets(@RequestParam("uid") Integer uid,
                                               @RequestBody List<Target> newTargets) {
     ResponseEntity<String> response;
-    List<Target> previousTargets = backupTargetList(currentUser.getTargets());
-    LOG.info("Updating targets: {}", newTargets);
+    List<Target> previousTargets;
+    try {
+      previousTargets = backupTargetList(currentUser.getTargets());
+      LOG.info("Updating targets: {}", newTargets);
+    } catch (CloneNotSupportedException e) {
+      LOG.error(e.getMessage());
+      return ResponseEntity.internalServerError().body(e.getMessage());
+    }
 
     try {
       if (!currentUser.getId().equals(uid)) {
