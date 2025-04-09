@@ -190,6 +190,48 @@ class TransactionControllerTest {
   }
 
   @Test
+  void editTransactionNullNotesDBHasNotes() {
+    try {
+      Transaction transactionToEdit = createTestTransactions().get(0);
+      transactionToEdit.setAmount(500L);
+      transactionToEdit.setNotes(null);
+      doNothing().when(database).update(any(File.class));
+
+      ResponseEntity<String> result = test.editTransaction(transactionToEdit);
+
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.ok("Transaction #1-0 edited successfully!"), result);
+      Transaction resultantTransaction = database.getCurrentUser().getTransactions().get(0);
+      assertEquals(transactionToEdit.getId(), resultantTransaction.getId());
+      assertEquals(transactionToEdit.getAmount(), resultantTransaction.getAmount());
+      assertEquals("No notes.", resultantTransaction.getNotes());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
+  void editTransactionNullNotesDBNoNotes() {
+    try {
+      Transaction transactionToEdit = createTestTransactions().get(1);
+      transactionToEdit.setAmount(500L);
+      transactionToEdit.setNotes(null);
+      doNothing().when(database).update(any(File.class));
+
+      ResponseEntity<String> result = test.editTransaction(transactionToEdit);
+
+      verify(database).update(any(File.class));
+      assertEquals(ResponseEntity.ok("Transaction #1-1 edited successfully!"), result);
+      Transaction resultantTransaction = database.getCurrentUser().getTransactions().get(1);
+      assertEquals(transactionToEdit.getId(), resultantTransaction.getId());
+      assertEquals(transactionToEdit.getAmount(), resultantTransaction.getAmount());
+      assertEquals("", resultantTransaction.getNotes());
+    } catch (IOException e) {
+      fail(e.getMessage());
+    }
+  }
+
+  @Test
   void editTransactionNotInList() {
     Transaction transactionToEdit = createTestTransactions().get(0);
     transactionToEdit.setAmount(500L);

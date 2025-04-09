@@ -166,7 +166,16 @@ public class TransactionController {
         throw new RuntimeException("Transaction list is empty.");
       }
 
-      userTransactions.set(Integer.parseInt(transaction.getId().split("-")[1]), transaction);
+      int tid = Integer.parseInt(transaction.getId().split("-")[1]);
+      if (isNull(transaction.getNotes()) && !userTransactions.get(tid).getNotes().isEmpty()) {
+        transaction.setNotes(userTransactions.get(tid).getNotes());
+      }
+
+      if (isNull(transaction.getNotes())) {
+        transaction.setNotes("");
+      }
+
+      userTransactions.set(tid, transaction);
       database.update(databaseFile);
 
       response = ResponseEntity.ok(String.format("Transaction #%s edited successfully!", transaction.getId()));
